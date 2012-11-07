@@ -14,105 +14,117 @@ public class RecursiveDescentParser {
 		buildSets();
 	}
 	
-	public boolean rexp() throws IOException {
+	public NFA rexp() throws IOException {
 		readSpaces();
-		boolean ret = rexp1();
-		if ( ret == false ) {
-			return false;
+		NFA rexp1 = rexp1();
+		NFA rexpprime = null;
+		if ( peek() == '|') {
+			rexpprime = rexpprime();
 		}
-		rexpprime();
-		return true;
+		if (rexp1 != null && rexpprime != null) {
+			return NFA.union(rexp1, rexpprime);
+		} else {
+			return rexp1;
+		}
 	}
 	
-	public boolean rexpprime() throws IOException {
+	public NFA rexpprime() throws IOException {
 		readSpaces();
 		if (peek() == '|') {
 			in.read(); // get the pipe
-			rexp1();
-			rexpprime();
-			return true;
+			NFA rexp1 = rexp1();
+			NFA rexpprime = rexpprime();
+			if (rexpprime == null) {
+				return rexp1;
+			}
+			return NFA.concat(rexp1, rexpprime);
 		} else {
-			return false;
+			return null;
 		}
 		
 	}
-	public boolean rexp1() throws IOException {
+	public NFA rexp1() throws IOException {
 		readSpaces();
-		boolean ret = rexp2();
-		if ( ret == false )
-			return false;
-		rexp1prime();
-		return true;
+		NFA rexp2 = rexp2();
+		if ( rexp2 == null )
+			return null;
+		NFA rexp1prime = rexp1prime();
+		if (rexp1prime == null)
+			return rexp2;
+		return NFA.concat(rexp2, rexp1prime);
 	}
 	
-	public boolean rexp1prime() throws IOException {
+	public NFA rexp1prime() throws IOException {
 		readSpaces();
-		//Do these, or return null
-		boolean ret = rexp2();
-		if (ret == false) {
-			return false;
+
+		NFA rexp2 = rexp2();
+		if (rexp2 == null) {
+			return null;
 		}
-		rexp1prime();
-		return true;
+		NFA rexp1prime = rexp1prime();
+		if (rexp1prime == null)
+			return rexp2;
+		return NFA.concat(rexp2, rexp1prime);
 	
 	}
 	
-	public boolean rexp2() throws IOException {
+	public NFA rexp2() throws IOException {
 		readSpaces();
 		if (peek() == '(') {
 			in.read(); //read first paren
-			rexp();
+			NFA rexp = rexp();
 			in.read(); //read second paren
-			rexp2tail();
-			return true;
+			return rexp2tail(rexp);
 		} else if (RE_CHAR.contains("" + peek())) { //might be 2 characters
-			in.read(); //read the RE_CHAR
-			rexp2tail();
-			return true;
+			NFA newNFA = new NFA((char) in.read()); //read the RE_CHAR
+			return rexp2tail(newNFA);  // need to make this work for star or plus
 		} else {
 			return rexp3();
 		}		
 	}
 	
-	public boolean rexp2tail() throws IOException {
+	//Might be smart to pass down the new NFA to this function
+	public NFA rexp2tail(NFA nfa) throws IOException {
 		readSpaces();
 		if (peek() == '*') {
 			in.read();
 			//return NFA that is just *
-			return true;
+			return NFA.star(nfa);
 		} else if (peek() == '+') {
 			in.read();
 			//return NFA that is just +
-			return true;
+			return NFA.plus(nfa);
 		} else {
-			//return an epsilon NFA
-			return false;
+			return nfa; //Just return the NFA, make no changes.
 		}
 	}
 	
-	public boolean rexp3() throws IOException {
+	public NFA rexp3() throws IOException {
 		readSpaces();
-		if (peek() == '.' || peek() == '[' || peek() == '$')
+		if (peek() == '.' || peek() == '[' || peek() == '$') {
 			return charclass();
-		else
-			return false;
+		} else {
+			return null;
+		}
 	}
 	
-	public boolean charclass() throws IOException {
+	public NFA charclass() throws IOException {
 		readSpaces();
 		if (peek() == '.') {
 			in.read();
-			//return NFA with just .
+			//return NFA with ALL CHARACTERS
 		} else if (peek() == '[') {
 			in.read();
-			charclass1();
+			return charclass1(); //returns NFA with a class of characters
 		} else {
 			//Defined class - might not need?
+			//returns a premade NFA character class
+			return null;
 		}
-		return true;
+		return null;
 	}
 	
-	public boolean charclass1() throws IOException {
+	public NFA charclass1() throws IOException {
 		readSpaces();
 		if (peek() == '^') {
 			return excludeset();
@@ -121,40 +133,46 @@ public class RecursiveDescentParser {
 		}		
 	}
 	
-	public boolean charsetlist() throws IOException {
+	public NFA charsetlist() throws IOException {
 		readSpaces();
 		if (peek() == ']') {
 			in.read();  //Read closing bracket
-			return true;
+			return null;  //Actually complete the NFA at this point
 		} else {
 		//Do these two
-			charset();
-			charsetlist();
-			return true;
+			NFA charset = charset();
+			NFA charsetlist = charsetlist();
+			if (charsetlist == null)
+				return charset;
+			return NFA.concat(charset, charsetlist);
 		}
 	}
 	
-	public boolean charset() throws IOException{
+	public NFA charset() throws IOException{
 		readSpaces();
 		if (CLS_CHAR.contains("" + peek())) {
-			in.read();	//could be two
-			charsettail(); //Might need to pass down a letter here for the start of the range
+			NFA newNFA = new NFA((char)in.read());	//could be two
+			NFA charsettail = charsettail(); //Might need to pass down a letter here for the start of the range
+			//if charsettail return null, just return newNFA, otherwise get the transition out of charsettail and
+			//make a large NFA with a range
+			if (charsettail == null)
+				return newNFA;
+			return NFA.union(newNFA, charsettail); //Since these are in a [] set, we must union everything
 		}
-		return true;
+		return null;
 	}
 	
-	public boolean charsettail() throws IOException{
+	public NFA charsettail() throws IOException{
 		readSpaces();
 		if (peek() == '-') {
 			in.read(); //This will be the end of a range
-			in.read(); //This will read CLS_CHAR
-			return true;
+			return new NFA((char)in.read()); //This will read CLS_CHAR
 		} else {
-			return false;
+			return null;
 		}
 	}
 	
-	public boolean excludeset() throws IOException {
+	public NFA excludeset() throws IOException {
 		readSpaces();
 		if (peek() == '^') {
 			in.read(); //read caret
@@ -164,20 +182,23 @@ public class RecursiveDescentParser {
 			//call in.read() a few times till you read " IN "
 			readSpaces();
 			excludesettail();
+			//Exclude set tail should return a set of GOOD characters
+			//We want to MINUS out whatever charset returns from exclude set;
+			return null;  //just return null for now
 		}
-		return true;
+		return null;
 	}
 	
-	public boolean excludesettail() throws IOException {
+	public NFA excludesettail() throws IOException {
 		readSpaces();
 		if (peek() == '[') {
 			in.read(); //read open
 			charset();
 			in.read(); //read close
+			return null;
 		} else {
-			//check for defined class
+			return null;
 		}
-		return true;
 	}
 
 	public char peek() throws IOException {
@@ -223,7 +244,9 @@ public class RecursiveDescentParser {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		RecursiveDescentParser rdp = new RecursiveDescentParser("([aaab]+|b)*(abb)");
-		rdp.rexp();
+		RecursiveDescentParser rdp = new RecursiveDescentParser("a*b*");
+		NFA nfa = rdp.rexp();
+		System.out.println(nfa);
+		
 	}
 }
