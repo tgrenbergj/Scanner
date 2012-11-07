@@ -10,7 +10,7 @@ public class CharacterClass
 	private String name; //or identifier
 	private Set<Character> characters;
 
-	//contains all the character classes specified by the Regex input file that has been parsed by the "recursive descent parser"
+	//contains all the character classes specified by the Regex input file that has been parsed 
 	private static Map<String, CharacterClass> allClasses = new HashMap<String, CharacterClass>();
 	
 	/**
