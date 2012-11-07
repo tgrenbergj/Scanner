@@ -10,7 +10,6 @@ public class DFA extends FiniteAutomata {
 		dfa = new int[numStates][numTransitions];
 	}
 	
-	@Override
 	public void addTransition(int start, int end, int transition) {
 		dfa[start][transition] = end;
 	}
