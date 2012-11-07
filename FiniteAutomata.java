@@ -35,5 +35,6 @@ public abstract class FiniteAutomata {
 		return numTransitions;
 	}
 	
-	public abstract void addTransition(int start, int end, int transition);
+	//public abstract void addTransition(int start, int end, int transition);
+	//public abstract void addTransition(int start, int end, char transition);
 }
