@@ -10,7 +10,7 @@ public class NFA extends FiniteAutomata {
 
 	private ArrayList<Map<Character, Set<Integer>>> nfa;
 	private Set<Character> transitions;
-	private static char EPSILON = 'ø';
+	private static char EPSILON = (char) 169;
 	
 	public NFA(char c) {
 		this();
@@ -225,6 +225,31 @@ public class NFA extends FiniteAutomata {
 		newNFA.setStartState(0);
 		int current = 1;
 		for (Character c: nfa1.transitions) {
+			if ( c != EPSILON) {
+				newNFA.addState();
+				newNFA.addTransition(newNFA.getStartState(), current, c);
+				newNFA.addFinalState(current);
+				current++;
+			}
+		}
+		return newNFA;
+	}
+	
+	//nfa1 is the old set, and nfa2 is what I want to subtract from nfa1
+	public static NFA minus(NFA nfa1, NFA nfa2) {
+		Set<Character> nfa1set = nfa1.transitions;
+		Set<Character> nfa2set = nfa2.transitions;
+		Set<Character> newset = new HashSet<Character>();
+		for (Character c: nfa1set) {
+			if (!nfa2set.contains(c))
+				newset.add(c);
+		}
+		
+		NFA newNFA = new NFA();
+		newNFA.addState();
+		newNFA.setStartState(0);
+		int current = 1;
+		for (Character c: newset) {
 			if ( c != EPSILON) {
 				newNFA.addState();
 				newNFA.addTransition(newNFA.getStartState(), current, c);
