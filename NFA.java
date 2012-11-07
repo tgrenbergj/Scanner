@@ -8,7 +8,8 @@ import java.util.*;
 
 public class NFA extends FiniteAutomata {
 
-	private Set<Integer>[][] nfa;
+	//private Set<Integer>[][] nfa;
+	private ArrayList<Map<Character, Set<Integer>>> nfa;
 	
 	public NFA() {
 		testNFA4();
