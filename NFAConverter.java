@@ -1,5 +1,5 @@
 import java.util.*;
-
+//Created by Akbar
 public class NFAConverter {
 
 	public static DFA NFAtoDFA(NFA nfa) {
