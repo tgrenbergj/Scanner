@@ -115,7 +115,7 @@ public class RecursiveDescentParser {
 			//return NFA with ALL CHARACTERS
 		} else if (peek() == '[') {
 			in.read();
-			return charclass1(); //returns NFA with a class of characters
+			return NFA.compress(charclass1()); //returns NFA with a class of characters
 		} else {
 			//Defined class - might not need?
 			//returns a premade NFA character class
@@ -139,34 +139,45 @@ public class RecursiveDescentParser {
 			in.read();  //Read closing bracket
 			return null;  //Actually complete the NFA at this point
 		} else {
-		//Do these two
 			NFA charset = charset();
 			NFA charsetlist = charsetlist();
 			if (charsetlist == null)
 				return charset;
-			return NFA.concat(charset, charsetlist);
+			return NFA.union(charset, charsetlist);
 		}
 	}
 	
 	public NFA charset() throws IOException{
 		readSpaces();
 		if (CLS_CHAR.contains("" + peek())) {
-			NFA newNFA = new NFA((char)in.read());	//could be two
-			NFA charsettail = charsettail(); //Might need to pass down a letter here for the start of the range
-			//if charsettail return null, just return newNFA, otherwise get the transition out of charsettail and
-			//make a large NFA with a range
+			char c = (char)in.read();
+			NFA newNFA = new NFA(c);	//could be two
+			NFA charsettail = charsettail(c);
 			if (charsettail == null)
 				return newNFA;
 			return NFA.union(newNFA, charsettail); //Since these are in a [] set, we must union everything
+			
 		}
 		return null;
 	}
 	
-	public NFA charsettail() throws IOException{
+	public NFA charsettail(char c) throws IOException{
 		readSpaces();
 		if (peek() == '-') {
-			in.read(); //This will be the end of a range
-			return new NFA((char)in.read()); //This will read CLS_CHAR
+			in.read(); //This will read the dash
+			char cend = (char)in.read(); //This will be the end of a range
+			//Check if the end character of the range is bigger than the start
+			if ((Character.isLowerCase(c) && Character.isLowerCase(cend) && c < cend) || 
+					(Character.isUpperCase(c) && Character.isUpperCase(cend) && c < cend) ||
+					(Character.isDigit(c) && Character.isDigit(cend) && c < cend)) {
+				NFA range = new NFA((char)(c+1));
+				for (int i = c+2; i <= cend; i++) {
+					range = NFA.union(range, new NFA((char)i));
+				}
+				return range;
+			} else {
+				return null;
+			}
 		} else {
 			return null;
 		}
@@ -244,7 +255,7 @@ public class RecursiveDescentParser {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		RecursiveDescentParser rdp = new RecursiveDescentParser("a*b*");
+		RecursiveDescentParser rdp = new RecursiveDescentParser("test(r[a-zA-Z]b|a)+");
 		NFA nfa = rdp.rexp();
 		System.out.println(nfa);
 		

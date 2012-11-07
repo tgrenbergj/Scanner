@@ -218,25 +218,49 @@ public class NFA extends FiniteAutomata {
 		return NFA.concat(nfa1, NFA.star(nfa1));
 	}
 	
-	
+	//NOTE: ONLY WORKS ON CHARACTER CLASSES
+	public static NFA compress(NFA nfa1) {
+		NFA newNFA = new NFA();
+		newNFA.addState();
+		newNFA.setStartState(0);
+		int current = 1;
+		for (Character c: nfa1.transitions) {
+			if ( c != EPSILON) {
+				newNFA.addState();
+				newNFA.addTransition(newNFA.getStartState(), current, c);
+				newNFA.addFinalState(current);
+				current++;
+			}
+		}
+		return newNFA;
+	}
+
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("Start state: %d\n", startState));
+		sb.append(String.format("Final states: %s\n", finalStates.toString()));
+		sb.append(String.format("Possible transitions: %s\n", transitions));
+		int i = 0;
+		for (Map<Character, Set<Integer>> map : nfa) {
+			sb.append(String.format("State %d: %s", i, map));
+			if ( i == startState) {
+				sb.append(" [start]");
+			}
+			if ( finalStates.contains(i) ) {
+				sb.append(" [final]");
+			}
+			sb.append("\n");
+			i++;
+		}
+		return sb.toString();
+	}
 	
 	public static void main(String[] args) {
 		NFA nfa1 = new NFA('a');
 		NFA concatnfa = NFA.concat(nfa1, nfa1);
 		NFA unionnfa = NFA.union(concatnfa, nfa1);
-		
 	}
 	
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(String.format("Start state: %d\n", startState));
-		sb.append(String.format("Final states: %s\n", finalStates.toString()));
-		int i = 0;
-		for (Map<Character, Set<Integer>> map : nfa) {
-			sb.append(String.format("State %d: %s\n", i++, map));
-		}
-		return sb.toString();
-	}
 //	@SuppressWarnings("unchecked")	
 //	private void testNFA1() {
 //		//Homework 2 problem
