@@ -4,10 +4,13 @@ import java.util.*;
 
 public class RecursiveDescentParser {
 	PushbackInputStream in;
-	
 	Set<String> RE_CHAR;
 	Set<String> CLS_CHAR;
-	public RecursiveDescentParser(String s) {
+	Map<String, NFA> charClasses;
+	private static char EPSILON = (char) 169;
+	
+	public RecursiveDescentParser(String s, Map<String, NFA> charClasses) {
+		this.charClasses = charClasses;
 		in = new PushbackInputStream(new ByteArrayInputStream(s.getBytes()));
 		RE_CHAR = new HashSet<String>();
 		CLS_CHAR = new HashSet<String>();
@@ -75,7 +78,10 @@ public class RecursiveDescentParser {
 			NFA rexp = rexp();
 			in.read(); //read second paren
 			return rexp2tail(rexp);
-		} else if (RE_CHAR.contains("" + peek())) { //might be 2 characters
+		} else if (peek() == '\\' || RE_CHAR.contains("" + peek())) { //might be 2 characters
+			if ( peek() == '\\') {
+				in.read();
+			}
 			NFA newNFA = new NFA((char) in.read()); //read the RE_CHAR
 			return rexp2tail(newNFA);  // need to make this work for star or plus
 		} else {
@@ -101,7 +107,7 @@ public class RecursiveDescentParser {
 	
 	public NFA rexp3() throws IOException {
 		readSpaces();
-		if (peek() == '.' || peek() == '[' || peek() == '$') {
+		if (peek() == '.' || peek() == '[' || peek() == EPSILON) {
 			return charclass();
 		} else {
 			return null;
@@ -113,15 +119,19 @@ public class RecursiveDescentParser {
 		if (peek() == '.') {
 			in.read();
 			//return NFA with ALL CHARACTERS
+			return null;
 		} else if (peek() == '[') {
 			in.read();
 			return NFA.compress(charclass1()); //returns NFA with a class of characters
 		} else {
-			//Defined class - might not need?
-			//returns a premade NFA character class
-			return null;
+			in.read(); //read epsilon
+			String charClass = "";
+			while (in.available() > 0 && peek() != EPSILON) {
+				charClass += (char)in.read();
+			}
+			in.read(); //read last epsilon
+			return charClasses.get(charClass);
 		}
-		return null;
 	}
 	
 	public NFA charclass1() throws IOException {
@@ -149,9 +159,11 @@ public class RecursiveDescentParser {
 	
 	public NFA charset() throws IOException{
 		readSpaces();
-		if (CLS_CHAR.contains("" + peek())) {
+		if (peek() == '\\' || CLS_CHAR.contains("" + peek())) {
+			if (peek() == '\\')
+				in.read();
 			char c = (char)in.read();
-			NFA newNFA = new NFA(c);	//could be two
+			NFA newNFA = new NFA(c);
 			NFA charsettail = charsettail(c);
 			if (charsettail == null)
 				return newNFA;
@@ -187,15 +199,14 @@ public class RecursiveDescentParser {
 		readSpaces();
 		if (peek() == '^') {
 			in.read(); //read caret
-			charset();
+			NFA charset1 = NFA.compress(charset());
 			in.read(); //read closing bracket (maybe check for it)
 			readSpaces();
-			//call in.read() a few times till you read " IN "
+			in.read(); //Read "I"
+			in.read(); //Read "N"
 			readSpaces();
-			excludesettail();
-			//Exclude set tail should return a set of GOOD characters
-			//We want to MINUS out whatever charset returns from exclude set;
-			return null;  //just return null for now
+			NFA charset2 = NFA.compress(excludesettail());
+			return NFA.minus(charset2, charset1);
 		}
 		return null;
 	}
@@ -204,11 +215,17 @@ public class RecursiveDescentParser {
 		readSpaces();
 		if (peek() == '[') {
 			in.read(); //read open
-			charset();
+			NFA charset = charset();
 			in.read(); //read close
-			return null;
+			return NFA.compress(charset);
 		} else {
-			return null;
+			in.read(); //read epsilon
+			String charClass = "";
+			while (in.available() > 0 && peek() != EPSILON) {
+				charClass += (char)in.read();
+			}
+			in.read();//read out epsilon
+			return charClasses.get(charClass);
 		}
 	}
 
@@ -219,10 +236,14 @@ public class RecursiveDescentParser {
 	}
 	
 	public void readSpaces() throws IOException {
-		int c = peek();
-		while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
-			in.read();
-			c = peek();
+		while (in.available() > 0) {
+			int c = peek();
+			if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
+				in.read();
+				c = peek();
+			} else {
+				break;
+			}
 		}
 	}
 	
@@ -255,9 +276,16 @@ public class RecursiveDescentParser {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		RecursiveDescentParser rdp = new RecursiveDescentParser("test(r[a-zA-Z]b|a)+");
+		new RecursiveDescentParser("[0-9]", null).rexp();
+		Map<String, NFA> classes = new HashMap<String, NFA>();
+		classes.put("DIGIT", new RecursiveDescentParser("[0-9]", null).rexp());
+		classes.put("NON-ZERO", new RecursiveDescentParser("[^0] IN ©DIGIT©", classes).rexp());
+		classes.put("CHAR", new RecursiveDescentParser("[a-zA-Z]", classes).rexp());
+		classes.put("UPPER", new RecursiveDescentParser("[^a-z] IN ©CHAR©", classes).rexp());
+		classes.put("LOWER", new RecursiveDescentParser("[^A-Z] IN ©CHAR©", classes).rexp());
+		
+		RecursiveDescentParser rdp = new RecursiveDescentParser("(©DIGIT©)+ \\. (©DIGIT©)+", classes);
 		NFA nfa = rdp.rexp();
 		System.out.println(nfa);
-		
 	}
 }
