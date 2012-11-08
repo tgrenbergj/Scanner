@@ -60,7 +60,7 @@ public class NFA extends FiniteAutomata {
 		return nfa.get(state).get(transition);
 	}
 	
-	public Set<Integer> getNextStates(Set<Integer> states, int transition) {
+	public Set<Integer> getNextStates(Set<Integer> states, char transition) {
 		Set<Integer> nextStates = new HashSet<Integer>();
 		for (Integer state : states) {
 			nextStates.addAll(nfa.get(state).get(transition));
@@ -87,11 +87,13 @@ public class NFA extends FiniteAutomata {
 		
 		while (!queue.isEmpty()) {
 			int current = queue.remove();
-			for (Integer i : nfa.get(current).get(EPSILON)) {
-				if (!visited.contains(i)) {
-					closure.add(i);
-					visited.add(i);
-					queue.add(i);
+			if (nfa.get(current).containsKey(EPSILON)) {
+				for (Integer i : nfa.get(current).get(EPSILON)) {
+					if (!visited.contains(i)) {
+						closure.add(i);
+						visited.add(i);
+						queue.add(i);
+					}
 				}
 			}
 		}
@@ -282,8 +284,7 @@ public class NFA extends FiniteAutomata {
 	
 	public static void main(String[] args) {
 		NFA nfa1 = new NFA('a');
-		NFA concatnfa = NFA.concat(nfa1, nfa1);
-		NFA unionnfa = NFA.union(concatnfa, nfa1);
+		System.out.println(nfa1.getEpsilonClosure(nfa1.getStartState()));
 	}
 	
 //	@SuppressWarnings("unchecked")	
