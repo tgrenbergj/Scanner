@@ -32,7 +32,7 @@ public class NFAConverter {
 			map.put(done.get(i).name, i);
 		}
 		
-		DFA dfa = new DFA(done.size(), numTransitions);
+		DFA dfa = new DFA(done.size(), nfa.getTransitions());
 		for (State curState : done) {
 			for (int i = 0; i < numTransitions; i++) {
 				dfa.addTransition(map.get(curState.name), map.get(curState.nextStates[i]), i);
