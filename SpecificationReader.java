@@ -26,7 +26,7 @@ public class SpecificationReader {
 				}
 				String toSend = line.substring(extract);
 				RecursiveDescentParser rdp = new RecursiveDescentParser(toSend,table);
-				NFA insert = rdp.rexp();
+				NFA insert = rdp.run();
 				table.put(entry, insert);
 				System.out.println(insert);
 				line = scan.nextLine();
@@ -42,8 +42,8 @@ public class SpecificationReader {
 				}
 			}
 			String toSend = line.substring(extract);
-			RecursiveDescentParser rdp = new RecursiveDescentParser(line.substring(extract),table);
-			NFA insert = rdp.rexp();
+			RecursiveDescentParser rdp = new RecursiveDescentParser(toSend,table);
+			NFA insert = rdp.run();
 			identifier.put(entry, insert);
 			System.out.println(insert);
 			line = scan.nextLine();
