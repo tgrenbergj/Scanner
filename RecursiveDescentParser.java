@@ -17,6 +17,10 @@ public class RecursiveDescentParser {
 		buildSets();
 	}
 	
+	public NFA run() throws IOException {
+		return rexp();
+	}
+	
 	public NFA rexp() throws IOException {
 		readSpaces();
 		NFA rexp1 = rexp1();
@@ -25,7 +29,7 @@ public class RecursiveDescentParser {
 			rexpprime = rexpprime();
 		}
 		if (rexp1 != null && rexpprime != null) {
-			return NFA.union(rexp1, rexpprime);
+			return NFATools.union(rexp1, rexpprime);
 		} else {
 			return rexp1;
 		}
@@ -40,7 +44,7 @@ public class RecursiveDescentParser {
 			if (rexpprime == null) {
 				return rexp1;
 			}
-			return NFA.concat(rexp1, rexpprime);
+			return NFATools.concat(rexp1, rexpprime);
 		} else {
 			return null;
 		}
@@ -54,7 +58,7 @@ public class RecursiveDescentParser {
 		NFA rexp1prime = rexp1prime();
 		if (rexp1prime == null)
 			return rexp2;
-		return NFA.concat(rexp2, rexp1prime);
+		return NFATools.concat(rexp2, rexp1prime);
 	}
 	
 	public NFA rexp1prime() throws IOException {
@@ -67,7 +71,7 @@ public class RecursiveDescentParser {
 		NFA rexp1prime = rexp1prime();
 		if (rexp1prime == null)
 			return rexp2;
-		return NFA.concat(rexp2, rexp1prime);
+		return NFATools.concat(rexp2, rexp1prime);
 	
 	}
 	
@@ -95,11 +99,11 @@ public class RecursiveDescentParser {
 		if (peek() == '*') {
 			in.read();
 			//return NFA that is just *
-			return NFA.star(nfa);
+			return NFATools.star(nfa);
 		} else if (peek() == '+') {
 			in.read();
 			//return NFA that is just +
-			return NFA.plus(nfa);
+			return NFATools.plus(nfa);
 		} else {
 			return nfa; //Just return the NFA, make no changes.
 		}
@@ -122,7 +126,7 @@ public class RecursiveDescentParser {
 			return null;
 		} else if (peek() == '[') {
 			in.read();
-			return NFA.compress(charclass1()); //returns NFA with a class of characters
+			return NFATools.compress(charclass1()); //returns NFA with a class of characters
 		} else {
 			in.read(); //read epsilon
 			String charClass = "";
@@ -153,7 +157,7 @@ public class RecursiveDescentParser {
 			NFA charsetlist = charsetlist();
 			if (charsetlist == null)
 				return charset;
-			return NFA.union(charset, charsetlist);
+			return NFATools.union(charset, charsetlist);
 		}
 	}
 	
@@ -167,7 +171,7 @@ public class RecursiveDescentParser {
 			NFA charsettail = charsettail(c);
 			if (charsettail == null)
 				return newNFA;
-			return NFA.union(newNFA, charsettail); //Since these are in a [] set, we must union everything
+			return NFATools.union(newNFA, charsettail); //Since these are in a [] set, we must union everything
 			
 		}
 		return null;
@@ -184,7 +188,7 @@ public class RecursiveDescentParser {
 					(Character.isDigit(c) && Character.isDigit(cend) && c < cend)) {
 				NFA range = new NFA((char)(c+1));
 				for (int i = c+2; i <= cend; i++) {
-					range = NFA.union(range, new NFA((char)i));
+					range = NFATools.union(range, new NFA((char)i));
 				}
 				return range;
 			} else {
@@ -199,14 +203,14 @@ public class RecursiveDescentParser {
 		readSpaces();
 		if (peek() == '^') {
 			in.read(); //read caret
-			NFA charset1 = NFA.compress(charset());
+			NFA charset1 = NFATools.compress(charset());
 			in.read(); //read closing bracket (maybe check for it)
 			readSpaces();
 			in.read(); //Read "I"
 			in.read(); //Read "N"
 			readSpaces();
-			NFA charset2 = NFA.compress(excludesettail());
-			return NFA.minus(charset2, charset1);
+			NFA charset2 = NFATools.compress(excludesettail());
+			return NFATools.minus(charset2, charset1);
 		}
 		return null;
 	}
@@ -217,7 +221,7 @@ public class RecursiveDescentParser {
 			in.read(); //read open
 			NFA charset = charset();
 			in.read(); //read close
-			return NFA.compress(charset);
+			return NFATools.compress(charset);
 		} else {
 			in.read(); //read epsilon
 			String charClass = "";
@@ -278,14 +282,14 @@ public class RecursiveDescentParser {
 	public static void main(String[] args) throws IOException {
 		new RecursiveDescentParser("[0-9]", null).rexp();
 		Map<String, NFA> classes = new HashMap<String, NFA>();
-		classes.put("DIGIT", new RecursiveDescentParser("[0-9]", null).rexp());
-		classes.put("NON-ZERO", new RecursiveDescentParser("[^0] IN ©DIGIT©", classes).rexp());
-		classes.put("CHAR", new RecursiveDescentParser("[a-zA-Z]", classes).rexp());
-		classes.put("UPPER", new RecursiveDescentParser("[^a-z] IN ©CHAR©", classes).rexp());
-		classes.put("LOWER", new RecursiveDescentParser("[^A-Z] IN ©CHAR©", classes).rexp());
+		classes.put("DIGIT", new RecursiveDescentParser("[0-9]", null).run());
+		classes.put("NON-ZERO", new RecursiveDescentParser("[^0] IN ©DIGIT©", classes).run());
+		classes.put("CHAR", new RecursiveDescentParser("[a-zA-Z]", classes).run());
+		classes.put("UPPER", new RecursiveDescentParser("[^a-z] IN ©CHAR©", classes).run());
+		classes.put("LOWER", new RecursiveDescentParser("[^A-Z] IN ©CHAR©", classes).run());
 		
 		RecursiveDescentParser rdp = new RecursiveDescentParser("(©DIGIT©)+ \\. (©DIGIT©)+", classes);
-		NFA nfa = rdp.rexp();
+		NFA nfa = rdp.run();
 		System.out.println(nfa);
 	}
 }
