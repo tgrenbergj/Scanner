@@ -1,28 +1,30 @@
+import java.io.IOException;
 import java.util.*;
 //Created by Akbar
 public class NFAConverter {
+	private static char EPSILON = (char) 169;
 
 	public static DFA NFAtoDFA(NFA nfa) {
 		Set<Set<Integer>> visited = new HashSet<Set<Integer>>();
 		Queue<State> queue = new LinkedList<State>();
 		ArrayList<State> done = new ArrayList<State>();
 		
-		int numTransitions = nfa.getNumTransitions() - 1;
-		
-		State state = new State(nfa.getEpsilonClosure(nfa.getStartState()), numTransitions);
+		State state = new State(nfa.getEpsilonClosure(nfa.getStartState()), nfa.getTransitions());
 		visited.add(state.name);
 		queue.add(state);
 		
 		while (!queue.isEmpty()) {
 			State current = queue.remove();
-			for (int i = 0; i < numTransitions; i++) {
-				Set<Integer> nextStates = nfa.getNextStates(current.name, i+1);
-				nextStates.addAll(nfa.getEpsilonClosure(nextStates));
-				if (!visited.contains(nextStates)) {
-					visited.add(nextStates);
-					queue.add(new State(nextStates, numTransitions));
+			for (Character c : nfa.getTransitions()) {
+				if ( c != EPSILON ) {
+					Set<Integer> nextStates = nfa.getNextStates(current.name, c);
+					nextStates.addAll(nfa.getEpsilonClosure(nextStates));
+					if (!visited.contains(nextStates)) {
+						visited.add(nextStates);
+						queue.add(new State(nextStates, nfa.getTransitions()));
+					}
+					current.addTransition(nextStates, c);
 				}
-				current.addTransition(nextStates, i);
 			}
 			done.add(current);
 		}
@@ -34,8 +36,8 @@ public class NFAConverter {
 		
 		DFA dfa = new DFA(done.size(), nfa.getTransitions());
 		for (State curState : done) {
-			for (int i = 0; i < numTransitions; i++) {
-				dfa.addTransition(map.get(curState.name), map.get(curState.nextStates[i]), i);
+			for (Character c : dfa.getTransitions()) {
+				dfa.addTransition(map.get(curState.name), map.get(curState.nextStates.get(c)), c);
 			}
 		}
 		
@@ -62,16 +64,20 @@ public class NFAConverter {
 	private static class State {
 		
 		Set<Integer> name;
-		Set<Integer>[] nextStates;
+		Map<Character, Set<Integer>> nextStates;
 		
-		@SuppressWarnings("unchecked")
-		public State(Set<Integer> name, int transitions) {
+		public State(Set<Integer> name, Set<Character> transitions) {
 			this.name = name;
-			this.nextStates = new HashSet[transitions];
+			nextStates = new HashMap<Character, Set<Integer>>();
+			for (Character c : transitions) {
+				if ( c != EPSILON ) {
+					nextStates.put(c, new HashSet<Integer>());
+				}
+			}
 		}
 		
-		public void addTransition(Set<Integer> states, int transition) {
-			nextStates[transition] = states;
+		public void addTransition(Set<Integer> states, char transition) {
+			nextStates.get(transition).addAll(states);
 		}
 		
 		@Override
@@ -86,9 +92,8 @@ public class NFAConverter {
 		
 	}
 	
-	public static void main(String[] args) {
-		NFA newNFA = new NFA();
-		DFA newDFA = NFAConverter.NFAtoDFA(newNFA);
+	public static void main(String[] args) throws IOException{
+		DFA newDFA = NFAConverter.NFAtoDFA(new RecursiveDescentParser("hello(a|bb)*", null).rexp());
 		System.out.println(newDFA);
 	}
 	
