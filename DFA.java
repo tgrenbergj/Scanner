@@ -4,27 +4,58 @@ public class DFA extends FiniteAutomata {
 
 	private int[][] dfa;
 	private Map<Character, Integer> transitions;
+	private Map<Integer, Character> revTransitions;
 	private static char EPSILON = (char) 169;
 	
 	public DFA(int numStates, Set<Character> transitions) {
 		this.numStates = numStates;
-		this.numTransitions = transitions.size() - 1;
+		this.numTransitions = transitions.contains(EPSILON) ? transitions.size() - 1 : transitions.size();
+		this.transitions = new HashMap<Character, Integer>();
+		this.revTransitions = new HashMap<Integer, Character>();
+		
 		int i = 0;
-		Character[] trans = (Character[]) transitions.toArray();
-		Arrays.sort(trans);
-		for (Character c : trans) {
+		//Add characters to an array so we can 
+		//sort them for easy transition reading
+		char[] trans = new char[numTransitions];
+		for (Character c : transitions) {
 			if (c != EPSILON) {
-				this.transitions.put(c, i);
+				trans[i] = c;
 				i++;
 			}
 		}
+		i = 0;
+		Arrays.sort(trans);
+		
+		//Build an integer to character transition mapping,
+		//and a reverse mapping
+		for (Character c : trans) {
+			if (c != EPSILON) {
+				this.transitions.put(c, i);
+				this.revTransitions.put(i,c);
+				i++;
+			}
+		}
+		
 		dfa = new int[numStates][numTransitions];
 	}
 	
+	/**
+	 * Set a transition for a given character and start state
+	 */
 	public void addTransition(int start, int end, char transition) {
 		dfa[start][transitions.get(transition)] = end;
 	}
 	
+	/**
+	 * Get all of the possible character transitions for this DFA
+	 */
+	public Set<Character> getTransitions() {
+		return transitions.keySet();
+	}
+	
+	/**
+	 * Get the next state number given a current state and character
+	 */
 	public int getNextState(int state, char transition) {
 		return dfa[state][transitions.get(transition)];
 	}
@@ -42,6 +73,10 @@ public class DFA extends FiniteAutomata {
 			}
 			sb.append("\n");
 			i++;
+		}
+		sb.append("Transitions:\n");
+		for (i = 0; i < revTransitions.size(); i++) {
+			sb.append(i + ": " + revTransitions.get(i) + "\n");
 		}
 		return sb.toString();
 	}
