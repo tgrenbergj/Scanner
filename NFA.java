@@ -10,6 +10,8 @@ public class NFA extends FiniteAutomata {
 
 	private ArrayList<Map<Character, Set<Integer>>> nfa;
 	private Set<Character> transitions;
+	private Map<Integer, Set<String>> tokenNames;
+	private Set<Integer> deadStates;
 	private static char EPSILON = (char) 169;
 	
 	public NFA(char c) {
@@ -27,6 +29,8 @@ public class NFA extends FiniteAutomata {
 	public NFA() {
 		nfa = new ArrayList<Map<Character, Set<Integer>>>();
 		transitions = new HashSet<Character>();
+		deadStates = new HashSet<Integer>();
+		tokenNames = new HashMap<Integer, Set<String>>();
 	}
 	
 	public void addTransition(int start, int end, char transition) {
@@ -58,6 +62,30 @@ public class NFA extends FiniteAutomata {
 	
 	public int getNumStates() {
 		return nfa.size();
+	}
+	
+	public void addTokenName(String name) {
+		for (Integer i : finalStates) {
+			if (!tokenNames.containsKey(i)) {
+				tokenNames.put(i, new HashSet<String>());
+			}
+			tokenNames.get(i).add(name);
+		}
+	}
+	
+	public void addTokenName(int state, String name) {
+		if (!tokenNames.containsKey(state)) {
+			tokenNames.put(state, new HashSet<String>());
+		}
+		tokenNames.get(state).add(name);
+	}
+	
+	public Set<String> getTokenNames(int state) {
+		if (!finalStates.contains(state)) {
+			return null;
+		} else {
+			return tokenNames.get(state);
+		}
 	}
 	
 	public Set<Integer> getNextStates(int state, char transition) {
@@ -105,7 +133,17 @@ public class NFA extends FiniteAutomata {
 		}
 		return closure;
 	}
-
+	
+	public void findDeadStates() {
+		for(int i = 0; i < nfa.size(); i++) {
+			if (!finalStates.contains(i)) {
+				if (nfa.get(i).size() == 0) {
+					deadStates.add(i);
+				}
+			}
+		}
+	}
+	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(String.format("Start state: %d\n", startState));
