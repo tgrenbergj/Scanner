@@ -7,47 +7,37 @@ public class NFATools {
 
 	private static char EPSILON = (char) 169;
 	
-	public static NFA union(NFA nfa1, NFA nfa2) {
+	public static NFA union(NFA ... nfas) {
 		NFA newNFA = new NFA();
 		newNFA.addState();
 		newNFA.setStartState(0);
 		
 		int current = 1;
 		int offset = 1;
-		
-		for (Map<Character, Set<Integer>> map : nfa1.getNFA()) {
-			newNFA.addState();
-			for(Character c : map.keySet()) {
-				Set<Integer> next = map.get(c);
-				for (Integer end : next) {
-					newNFA.addTransition(current, end + offset, c);
+		for (NFA nfa : nfas) {
+			
+			for (Map<Character, Set<Integer>> map : nfa.getNFA()) {
+				newNFA.addState();
+				for(Character c : map.keySet()) {
+					Set<Integer> next = map.get(c);
+					for (Integer end : next) {
+						newNFA.addTransition(current, end + offset, c);
+					}
+				}
+				current++;
+			}
+			newNFA.addEpsilonTransition(newNFA.getStartState(), nfa.getStartState() + offset);
+			for (Integer state : nfa.finalStates) {
+				int newFinalState = state + offset;
+				newNFA.addFinalState(newFinalState);
+				for (String name : nfa.getTokenNames(state)) {
+					newNFA.addTokenName(newFinalState, name);
 				}
 			}
-			current++;
+			
+			offset = current;
 		}
-		newNFA.addEpsilonTransition(newNFA.getStartState(), nfa1.getStartState() + offset);
-		for (Integer state : nfa1.finalStates) {
-			newNFA.addFinalState(state + offset);
-		}
-		
-		offset = current;
-		
-		for (Map<Character, Set<Integer>> map : nfa2.getNFA()) {
-			newNFA.addState();
-			for(Character c : map.keySet()) {
-				Set<Integer> next = map.get(c);
-				for (Integer end : next) {
-					newNFA.addTransition(current, end + offset, c);
-				}
-			}
-			current++;
-		}
-		
-		newNFA.addEpsilonTransition(newNFA.getStartState(), nfa2.getStartState() + offset);
-		for (Integer state : nfa2.finalStates) {
-			newNFA.addFinalState(state + offset);
-		}
-		
+
 		return newNFA;
 	}
 	
@@ -171,41 +161,6 @@ public class NFATools {
 			}
 		}
 		return newNFA;
-	}
-	
-	public static NFA combine(NFA ... nfas) {
-		NFA newNFA = new NFA();
-		newNFA.addState();
-		newNFA.setStartState(0);
-		
-		int current = 1;
-		int offset = 1;
-		for (NFA nfa : nfas) {
-			
-			for (Map<Character, Set<Integer>> map : nfa.getNFA()) {
-				newNFA.addState();
-				for(Character c : map.keySet()) {
-					Set<Integer> next = map.get(c);
-					for (Integer end : next) {
-						newNFA.addTransition(current, end + offset, c);
-					}
-				}
-				current++;
-			}
-			newNFA.addEpsilonTransition(newNFA.getStartState(), nfa.getStartState() + offset);
-			for (Integer state : nfa.finalStates) {
-				int newFinalState = state + offset;
-				newNFA.addFinalState(newFinalState);
-				for (String name : nfa.getTokenNames(state)) {
-					newNFA.addTokenName(newFinalState, name);
-				}
-			}
-			
-			offset = current;
-		}
-
-		return newNFA;
-		
 	}
 	
 }
