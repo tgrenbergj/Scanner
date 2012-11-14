@@ -14,6 +14,8 @@ public class DFA extends FiniteAutomata {
 		this.numTransitions = transitions.contains(EPSILON) ? transitions.size() - 1 : transitions.size();
 		this.transitions = new HashMap<Character, Integer>();
 		this.revTransitions = new HashMap<Integer, Character>();
+		this.deadStates = new HashSet<Integer>();
+		this.tokenNames = new HashMap<Integer, String>();
 		
 		int i = 0;
 		//Add characters to an array so we can 
@@ -70,8 +72,28 @@ public class DFA extends FiniteAutomata {
 		return deadStates.contains(state);
 	}
 	
+	public void addTokenName(int state, String name) {
+		tokenNames.put(state, name);
+	}
+	
 	public String getTokenName(int state) {
 		return tokenNames.get(state);
+	}
+	
+	public void findDeadStates() {
+		for ( int i = 0; i < dfa.length; i++) {
+			if (!finalStates.contains(i)) {
+				boolean same = true;
+				for (int j = 0; same && j < dfa[i].length - 1; j++) {
+					if (dfa[i][j] != dfa[i][j+1])
+						same = false;
+				}
+				if (same) {
+					deadStates.add(i);
+				}
+			}
+			
+		}
 	}
 	
 	public String toString() {
@@ -83,7 +105,7 @@ public class DFA extends FiniteAutomata {
 			if (startState == i) {
 				sb.append(" -");
 			} if (finalStates.contains(i)) {
-				sb.append(" *");
+				sb.append(" * " + tokenNames.get(i));
 			}
 			sb.append("\n");
 			i++;
