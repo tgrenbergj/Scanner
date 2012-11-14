@@ -3,10 +3,11 @@ import java.util.*;
 //Parser
 
 public class RecursiveDescentParser {
-	PushbackInputStream in;
-	Set<String> RE_CHAR;
-	Set<String> CLS_CHAR;
-	Map<String, NFA> charClasses;
+	private PushbackInputStream in;
+	private Set<String> RE_CHAR;
+	private Set<String> CLS_CHAR;
+	private NFA dot;
+	private Map<String, NFA> charClasses;
 	private static char EPSILON = (char) 169;
 	
 	public RecursiveDescentParser(String s, Map<String, NFA> charClasses) {
@@ -121,8 +122,7 @@ public class RecursiveDescentParser {
 		readSpaces();
 		if (peek() == '.') {
 			in.read();
-			//return NFA with ALL CHARACTERS
-			return null;
+			return dot;
 		} else if (peek() == '[') {
 			in.read();
 			return NFATools.compress(charclass1()); //returns NFA with a class of characters
@@ -276,5 +276,11 @@ public class RecursiveDescentParser {
 				CLS_CHAR.add("" + (char)i);
 			}
 		}
+		dot = new NFA((char)32);
+		for (int i = 33; i <= 126; i++) {
+			dot = NFATools.union(dot, new NFA((char)i));
+		}
+		dot = NFATools.union(dot, new NFA('\t'));
+		dot = NFATools.compress(dot);
 	}
 }
