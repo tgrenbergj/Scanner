@@ -48,10 +48,12 @@ public class DFAWalker {
 				
 				//While there are consecutive characters that are invalid
 				//read them in and add them to an invalid token
-				while (nextState == -1 || dfa.isDeadState(nextState) || temp == '\n') {
+				while (nextState == -1 || dfa.isDeadState(nextState)) {
 					if (temp == -1 || peek() == 65535)
 						break;
 					invalid.append((char)reader.read());
+					if (temp == '\n')
+						break;
 					temp = peek();
 					nextState = dfa.getNextState(currState, (char) temp);
 				}

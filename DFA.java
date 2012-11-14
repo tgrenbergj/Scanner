@@ -156,7 +156,7 @@ public class DFA extends FiniteAutomata {
 		sb.append(String.format("%"+padding+"d: ", state));
 		sb.append("[");
 		for (int i = 0; i < dfa[state].length; i++) {
-			sb.append(String.format("%"+padding+"d, ", dfa[state][i]));
+			sb.append(String.format("%" + padding + "d, ", dfa[state][i]));
 		}
 		sb.delete(sb.length() - 2, sb.length());
 		sb.append("]");
@@ -175,7 +175,7 @@ public class DFA extends FiniteAutomata {
 		}
 		sb.append("<");
 		for (int i = 0; i < numTransitions; i++) {
-			sb.append(String.format("%" + (padding) + "s", revTransitions.get(i)));
+			sb.append(String.format("%" + padding + "s", revTransitions.get(i)));
 			if (i != numTransitions - 1)
 				sb.append(", ");
 		}
