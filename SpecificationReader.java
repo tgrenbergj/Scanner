@@ -28,7 +28,6 @@ public class SpecificationReader {
 				RecursiveDescentParser rdp = new RecursiveDescentParser(toSend,table);
 				NFA insert = rdp.run();
 				table.put(entry, insert);
-				System.out.println(entry);
 				line = scan.nextLine();
 			
 		}
@@ -46,7 +45,6 @@ public class SpecificationReader {
 			NFA insert = rdp.run();
 			insert.addTokenName(entry);
 			identifier.add(insert);
-			System.out.println(entry);
 			if (!scan.hasNextLine())
 				break;
 			line = scan.nextLine();

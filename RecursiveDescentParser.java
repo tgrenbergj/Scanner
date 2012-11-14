@@ -25,7 +25,7 @@ public class RecursiveDescentParser {
 		readSpaces();
 		NFA rexp1 = rexp1();
 		NFA rexpprime = null;
-		if ( peek() == '|') { //Fix this for more than 2 things
+		if ( peek() == '|') {
 			rexpprime = rexpprime();
 		}
 		if (rexp1 != null && rexpprime != null) {
@@ -87,13 +87,12 @@ public class RecursiveDescentParser {
 				in.read();
 			}
 			NFA newNFA = new NFA((char) in.read()); //read the RE_CHAR
-			return rexp2tail(newNFA);  // need to make this work for star or plus
+			return rexp2tail(newNFA);
 		} else {
 			return rexp3();
 		}		
 	}
 	
-	//Might be smart to pass down the new NFA to this function
 	public NFA rexp2tail(NFA nfa) throws IOException {
 		readSpaces();
 		if (peek() == '*') {
