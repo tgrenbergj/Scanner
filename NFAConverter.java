@@ -52,11 +52,17 @@ public class NFAConverter {
 			for (int i : nfa.getFinalStates()) {
 				if (curState.name.contains(i)) {
 					dfa.addFinalState(map.get(curState.name));
+					String tokenName = null;
+					for (int finalState : curState.name) {
+						if (nfa.getTokenNames(finalState) != null)
+							tokenName = (String) nfa.getTokenNames(finalState).toArray()[0];
+					}
+					dfa.addTokenName(map.get(curState.name), tokenName);
 					break;
 				}
 			}
 		}
-	
+		dfa.findDeadStates();
 		return dfa;
 		
 	}
