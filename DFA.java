@@ -9,6 +9,13 @@ public class DFA extends FiniteAutomata {
 	private Set<Integer> deadStates;
 	private static char EPSILON = (char) 169;
 	
+	/**
+	 * Create a DFA with a pre-defined number of states and a list of possible
+	 * single character transitions.
+	 * 
+	 * @param numStates The number of states the DFA will have
+	 * @param transitions The character transitions the DFA will have
+	 */
 	public DFA(int numStates, Set<Character> transitions) {
 		this.numStates = numStates;
 		this.numTransitions = transitions.contains(EPSILON) ? transitions.size() - 1 : transitions.size();
@@ -45,6 +52,10 @@ public class DFA extends FiniteAutomata {
 	
 	/**
 	 * Set a transition for a given character and start state
+	 * 
+	 * @param start The state to start on
+	 * @param end The state to transition to
+	 * @param transition The character to transition on from start to end
 	 */
 	public void addTransition(int start, int end, char transition) {
 		dfa[start][transitions.get(transition)] = end;
@@ -52,6 +63,7 @@ public class DFA extends FiniteAutomata {
 	
 	/**
 	 * Get all of the possible character transitions for this DFA
+	 * @return A set of all possible single character transitions
 	 */
 	public Set<Character> getTransitions() {
 		return transitions.keySet();
@@ -66,22 +78,50 @@ public class DFA extends FiniteAutomata {
 		return dfa[state][transitions.get(transition)];
 	}
 	
+	/**
+	 * Check if a given state is a final state
+	 * 
+	 * @param state The state to check
+	 * @return True if this state is a final state, false otherwise
+	 */
 	public boolean isFinalState(int state) {
 		return finalStates.contains(state);
 	}
 	
+	/**
+	 * Check if a given state is a dead state
+	 * 
+	 * @param state The state to check
+	 * @return True if this state is a dead state, false otherwise
+	 */
 	public boolean isDeadState(int state) {
 		return deadStates.contains(state);
 	}
 	
+	/**
+	 * Associated a token name with a given state
+	 * 
+	 * @param state The state number
+	 * @param name The token name
+	 */
 	public void addTokenName(int state, String name) {
 		tokenNames.put(state, name);
 	}
 	
+	/**
+	 * Get the token name associated with a final state.
+	 * 
+	 * @param state The state to check
+	 * @return The token name associated with the state
+	 */
 	public String getTokenName(int state) {
 		return tokenNames.get(state);
 	}
 	
+	/**
+	 * Find all dead states in the DFA by seeing if a state only transitions
+	 * back to itself, and it is not a final state.
+	 */
 	public void findDeadStates() {
 		for ( int i = 0; i < dfa.length; i++) {
 			if (!finalStates.contains(i)) {
