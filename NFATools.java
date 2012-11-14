@@ -8,6 +8,10 @@ public class NFATools {
 	private static char EPSILON = (char) 169;
 	
 	public static NFA union(NFA ... nfas) {
+		return unionAll(false, nfas);
+	}
+	
+	public static NFA unionAll(boolean doTokens, NFA ... nfas) {
 		NFA newNFA = new NFA();
 		newNFA.addState();
 		newNFA.setStartState(0);
@@ -30,8 +34,10 @@ public class NFATools {
 			for (Integer state : nfa.finalStates) {
 				int newFinalState = state + offset;
 				newNFA.addFinalState(newFinalState);
-				for (String name : nfa.getTokenNames(state)) {
-					newNFA.addTokenName(newFinalState, name);
+				if (doTokens) {
+					for (String name : nfa.getTokenNames(state)) {
+						newNFA.addTokenName(newFinalState, name);
+					}
 				}
 			}
 			
