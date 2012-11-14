@@ -61,6 +61,8 @@ public class DFA extends FiniteAutomata {
 	 * Get the next state number given a current state and character
 	 */
 	public int getNextState(int state, char transition) {
+		if (!transitions.containsKey(transition))
+			return -1;
 		return dfa[state][transitions.get(transition)];
 	}
 	
