@@ -97,10 +97,5 @@ public class NFAConverter {
 		}
 		
 	}
-	
-	public static void main(String[] args) throws IOException{
-		DFA newDFA = NFAConverter.NFAtoDFA(new RecursiveDescentParser("hello(a|bb)*", null).rexp());
-		System.out.println(newDFA);
-	}
-	
+
 }
