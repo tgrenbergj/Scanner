@@ -56,8 +56,7 @@ public class SpecificationReader {
 		for (NFA nfa : identifier)
 			nfas[i++] = nfa;
 		
-		NFA combinedNFA = NFATools.combine(nfas);
-		combinedNFA.findDeadStates();
+		NFA combinedNFA = NFATools.union(nfas);
 		return combinedNFA;
 	}
 	
