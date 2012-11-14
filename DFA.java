@@ -5,6 +5,8 @@ public class DFA extends FiniteAutomata {
 	private int[][] dfa;
 	private Map<Character, Integer> transitions;
 	private Map<Integer, Character> revTransitions;
+	private Map<Integer, String> tokenNames;
+	private Set<Integer> deadStates;
 	private static char EPSILON = (char) 169;
 	
 	public DFA(int numStates, Set<Character> transitions) {
@@ -58,6 +60,18 @@ public class DFA extends FiniteAutomata {
 	 */
 	public int getNextState(int state, char transition) {
 		return dfa[state][transitions.get(transition)];
+	}
+	
+	public boolean isFinalState(int state) {
+		return finalStates.contains(state);
+	}
+	
+	public boolean isDeadState(int state) {
+		return deadStates.contains(state);
+	}
+	
+	public String getTokenName(int state) {
+		return tokenNames.get(state);
 	}
 	
 	public String toString() {
