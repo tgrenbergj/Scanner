@@ -173,4 +173,39 @@ public class NFATools {
 		return newNFA;
 	}
 	
+	public static NFA combine(NFA ... nfas) {
+		NFA newNFA = new NFA();
+		newNFA.addState();
+		newNFA.setStartState(0);
+		
+		int current = 1;
+		int offset = 1;
+		for (NFA nfa : nfas) {
+			
+			for (Map<Character, Set<Integer>> map : nfa.getNFA()) {
+				newNFA.addState();
+				for(Character c : map.keySet()) {
+					Set<Integer> next = map.get(c);
+					for (Integer end : next) {
+						newNFA.addTransition(current, end + offset, c);
+					}
+				}
+				current++;
+			}
+			newNFA.addEpsilonTransition(newNFA.getStartState(), nfa.getStartState() + offset);
+			for (Integer state : nfa.finalStates) {
+				int newFinalState = state + offset;
+				newNFA.addFinalState(newFinalState);
+				for (String name : nfa.getTokenNames(state)) {
+					newNFA.addTokenName(newFinalState, name);
+				}
+			}
+			
+			offset = current;
+		}
+
+		return newNFA;
+		
+	}
+	
 }
