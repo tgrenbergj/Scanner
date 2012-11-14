@@ -56,13 +56,15 @@ public class SpecificationReader {
 		for (NFA nfa : identifier)
 			nfas[i++] = nfa;
 		
-		NFA combinedNFA = NFATools.union(nfas);
+		NFA combinedNFA = NFATools.unionAll(true, nfas);
 		return combinedNFA;
 	}
 	
 	public static void main(String[] args) throws IOException{
 		SpecificationReader sr = new SpecificationReader("sample_spec.txt");
-		System.out.println(sr.run());
+		NFA nfa = sr.run();
+		DFA dfa = NFAConverter.NFAtoDFA(nfa);
+		System.out.println(dfa);
 		
 	}
 }
