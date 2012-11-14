@@ -30,14 +30,12 @@ public class DFAWalker {
 			
 			//skip spaces, tabs, new lines, carriage returns
 			currChar = (char)currInt;
-			if((currChar == ' ') || (currChar == '\t') || (currChar == '\n') || (currChar == '\r'))
-				continue;
-			
+
 			token.append(currChar);
 			
 			nextState = dfa.getNextState(currState, currChar);
 			
-			if(dfa.isDeadState(nextState)){ //longest match has been reached
+			if(nextState == -1 || dfa.isDeadState(nextState)){ //longest match has been reached
 				
 				//now consume all the remaining chars until a space/tab/newline/carriage return is reached
 				tempChar = currChar;
@@ -57,5 +55,14 @@ public class DFAWalker {
 			else
 				currState = nextState;
 		}
+	}
+	
+	public static void main(String[] args) throws IOException {
+		SpecificationReader sr = new SpecificationReader("sample_spec.txt");
+		NFA nfa = sr.run();
+		DFA dfa = NFAConverter.NFAtoDFA(nfa);
+		System.out.println(dfa);
+		DFAWalker walker = new DFAWalker("sample_input.txt", dfa);
+		walker.walk();
 	}
 }
