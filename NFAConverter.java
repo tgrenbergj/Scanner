@@ -1,9 +1,18 @@
-import java.io.IOException;
 import java.util.*;
-//Created by Akbar
+
+/**
+ * A class that takes in a complete NFA, and outputs a valid DFA
+ * to be used by the table walker
+ */
 public class NFAConverter {
+	
 	private static char EPSILON = (char) 169;
 
+	/**
+	 * A method to convert a NFA to a DFA
+	 * @param nfa The NFA to convert
+	 * @return The converted DFA
+	 */
 	public static DFA NFAtoDFA(NFA nfa) {
 		Set<Set<Integer>> visited = new HashSet<Set<Integer>>();
 		Queue<State> queue = new LinkedList<State>();
@@ -13,6 +22,9 @@ public class NFAConverter {
 		visited.add(state.name);
 		queue.add(state);
 		
+		//Do a BFS on the NFA.  Basically take the epsilon closure of a state,
+		//see where you can go if you tried every character transition on it,
+		//and visit those states and do the same thing.
 		while (!queue.isEmpty()) {
 			State current = queue.remove();
 			for (Character c : nfa.getTransitions()) {
@@ -29,11 +41,15 @@ public class NFAConverter {
 			done.add(current);
 		}
 		
+		//Map each of the named states, eg {0, 1, 5, 6, 7} of the NFA conversion
+		//table to a single state number for the DFA
 		Map<Set<Integer>, Integer> map = new HashMap<Set<Integer>, Integer>();
 		for (int i = 0; i < done.size(); i++) {
 			map.put(done.get(i).name, i);
 		}
 		
+		//For each state the DFA has, get the next state it will go to
+		//for each character transition that is possible in the language
 		DFA dfa = new DFA(done.size(), nfa.getTransitions());
 		for (State curState : done) {
 			for (Character c : dfa.getTransitions()) {
@@ -41,6 +57,7 @@ public class NFAConverter {
 			}
 		}
 		
+		//Find the start state of the DFA and set it
 		for (State curState : done) {
 			if (curState.name.contains(nfa.getStartState())) {
 				dfa.setStartState(map.get(curState.name));
@@ -48,6 +65,8 @@ public class NFAConverter {
 			}
 		}
 		
+		//Find all of the final states of the DFA and set them.  In addition,
+		//make sure each final state is mapped to a token name
 		for (State curState : done) {
 			for (int i : nfa.getFinalStates()) {
 				if (curState.name.contains(i)) {
@@ -62,11 +81,23 @@ public class NFAConverter {
 				}
 			}
 		}
+		
+		//Find all of the possible dead states in the graph
 		dfa.findDeadStates();
+		
 		return dfa;
 		
 	}
 	
+
+	/**
+	 * A state that will be used in the NFA -> DFA conversion.
+	 * 
+	 * It's name is the set of states in the NFA that this single DFA
+	 * state will represent.
+	 * 
+	 * Also map which states the NFA would transition to on each character
+	 */
 	private static class State {
 		
 		Set<Integer> name;
