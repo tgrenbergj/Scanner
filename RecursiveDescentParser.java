@@ -25,7 +25,7 @@ public class RecursiveDescentParser {
 		readSpaces();
 		NFA rexp1 = rexp1();
 		NFA rexpprime = null;
-		if ( peek() == '|') {
+		if ( peek() == '|') { //Fix this for more than 2 things
 			rexpprime = rexpprime();
 		}
 		if (rexp1 != null && rexpprime != null) {
@@ -288,8 +288,9 @@ public class RecursiveDescentParser {
 		classes.put("UPPER", new RecursiveDescentParser("[^a-z] IN ©CHAR©", classes).run());
 		classes.put("LOWER", new RecursiveDescentParser("[^A-Z] IN ©CHAR©", classes).run());
 		
-		RecursiveDescentParser rdp = new RecursiveDescentParser("(©DIGIT©)+ \\. (©DIGIT©)+", classes);
+		RecursiveDescentParser rdp = new RecursiveDescentParser("(a|b|c|d)*", classes);
 		NFA nfa = rdp.run();
 		System.out.println(nfa);
+		System.out.println(NFAConverter.NFAtoDFA(nfa));
 	}
 }

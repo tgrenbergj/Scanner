@@ -53,7 +53,7 @@ public class SpecificationReader {
 	}
 	
 	public static void main(String[] args) throws IOException{
-		SpecificationReader sr = new SpecificationReader("Input.txt");
+		SpecificationReader sr = new SpecificationReader("sample_input.txt");
 		sr.run();
 		
 	}
