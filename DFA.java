@@ -139,23 +139,47 @@ public class DFA extends FiniteAutomata {
 	}
 	
 	public String toString() {
+		int longestState = ("" + dfa.length).length();
 		StringBuilder sb = new StringBuilder();
-		int i = 0;
-		for (int[] line : dfa) {
-			sb.append(i + ": ");
-			sb.append(Arrays.toString(line));
-			if (startState == i) {
-				sb.append(" -");
-			} if (finalStates.contains(i)) {
-				sb.append(" * " + tokenNames.get(i));
-			}
+		sb.append(transitionsToString(longestState));
+		sb.append("\n");
+		for (int i = 0; i < dfa.length; i++) {
+			sb.append(stateToString(i, longestState));
 			sb.append("\n");
-			i++;
 		}
-		sb.append("Transitions:\n");
-		for (i = 0; i < revTransitions.size(); i++) {
-			sb.append(i + ": " + revTransitions.get(i) + "\n");
+		sb.append(transitionsToString(longestState));
+		return sb.toString();
+	}
+	
+	private String stateToString(int state, int padding) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("%"+padding+"d: ", state));
+		sb.append("[");
+		for (int i = 0; i < dfa[state].length; i++) {
+			sb.append(String.format("%"+padding+"d, ", dfa[state][i]));
 		}
+		sb.delete(sb.length() - 2, sb.length());
+		sb.append("]");
+		if (startState == state) {
+			sb.append(" -");
+		} if (finalStates.contains(state)) {
+			sb.append(" * " + tokenNames.get(state));
+		}
+		return sb.toString();
+	}
+	
+	private String transitionsToString(int padding) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < padding + 2; i++) {
+			sb.append(" ");
+		}
+		sb.append("<");
+		for (int i = 0; i < numTransitions; i++) {
+			sb.append(String.format("%" + (padding) + "s", revTransitions.get(i)));
+			if (i != numTransitions - 1)
+				sb.append(", ");
+		}
+		sb.append(">");
 		return sb.toString();
 	}
 }
