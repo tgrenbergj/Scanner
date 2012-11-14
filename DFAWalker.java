@@ -1,18 +1,19 @@
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PushbackInputStream;
+import java.io.PushbackReader;
 
 public class DFAWalker {
 	private DFA dfa;
-	private String fileName;
+	private PushbackReader reader;
 	
-	public DFAWalker(String fileName, DFA dfa){
+	public DFAWalker(String fileName, DFA dfa) throws FileNotFoundException {
 		this.dfa = dfa;
-		this.fileName = fileName;
+		this.reader = new PushbackReader(new FileReader(fileName));
 	}
 	
 	public void walk() throws IOException{
-		FileReader reader = new FileReader(fileName);
-		
 		int currInt;
 		char currChar;
 		char tempChar;
@@ -25,7 +26,7 @@ public class DFAWalker {
 			currInt = reader.read();
 			
 			//done when eof is reached
-			if(currInt == -1)
+			if(currInt == -1 || currInt == Character.MAX_VALUE)
 				break;
 			
 			//skip spaces, tabs, new lines, carriage returns
@@ -37,10 +38,15 @@ public class DFAWalker {
 			
 			if(nextState == -1 || dfa.isDeadState(nextState)){ //longest match has been reached
 				
+				reader.unread(currChar);
+				
 				//now consume all the remaining chars until a space/tab/newline/carriage return is reached
-				tempChar = currChar;
-				while(tempChar != ' ' && tempChar != '\t' && tempChar != '\n' && tempChar != '\r')
-					tempChar = (char)reader.read();
+				tempChar = peek();
+				
+				while(tempChar == ' ' || tempChar == '\t' || tempChar == '\n' || tempChar == '\r') {
+					reader.read();
+					tempChar = peek();
+				}
 				
 					
 				if(dfa.isFinalState(currState))
@@ -49,15 +55,24 @@ public class DFAWalker {
 					System.out.println("Invalid token: " + token.deleteCharAt(token.length() - 1));
 				
 				currState = dfa.getStartState(); // start from the beginning of DFA for the next iteration
-				token = new StringBuilder(); // reset token too	
+				token = new StringBuilder(); // reset token too
 			}		
 			
 			else
 				currState = nextState;
 		}
+		
+
+		
 	}
 	
-	public static void main(String[] args) throws IOException {
+	public char peek() throws IOException {
+		int c = reader.read();
+		reader.unread(c);
+		return (char) c;
+	}
+	
+	public static void main(String[] args) throws Exception {
 		SpecificationReader sr = new SpecificationReader("sample_spec.txt");
 		NFA nfa = sr.run();
 		DFA dfa = NFAConverter.NFAtoDFA(nfa);
