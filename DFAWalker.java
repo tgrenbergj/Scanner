@@ -1,8 +1,4 @@
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PushbackInputStream;
-import java.io.PushbackReader;
+import java.io.*;
 
 public class DFAWalker {
 	private DFA dfa;
@@ -14,70 +10,95 @@ public class DFAWalker {
 	}
 	
 	public void walk() throws IOException{
-		int currInt;
-		char currChar;
-		char tempChar;
+		int currChar;
 		
 		int currState = dfa.getStartState();
 		int nextState;
 		
 		StringBuilder token = new StringBuilder();
-		while(true){
-			currInt = reader.read();
+		
+		//Run until we hit EOF
+		while (peek() != -1 && peek() != 65535) {
 			
-			//done when eof is reached
-			if(currInt == -1 || currInt == Character.MAX_VALUE)
-				break;
+			//Get the next character and see where it transitions
+			currChar = reader.read();
+			nextState = dfa.getNextState(currState, (char) currChar);
 			
-			//skip spaces, tabs, new lines, carriage returns
-			currChar = (char)currInt;
-
-			token.append(currChar);
-			
-			nextState = dfa.getNextState(currState, currChar);
-			
-			if(nextState == -1 || dfa.isDeadState(nextState)){ //longest match has been reached
-				
+			//If the next state is a valid state, append the char and move on
+			if ( nextState != -1 && !dfa.isDeadState(nextState) ) {
+				token.append((char) currChar);
+				currState = nextState;
+			//Otherwise we are at the end of a token
+			} else {
+				StringBuilder invalid = new StringBuilder();
+				//Print out the valid token if it has anything in it, and
+				//we were at a final state
+				if (dfa.isFinalState(currState) && token.length() > 0) {
+					System.out.println(dfa.getTokenName(currState) + " " + token.toString());
+				} else {
+					//Otherwise we need to add this on to the invalid token
+					invalid.append(token.toString());
+				}
+				//Unread the character that broke the token and reset
 				reader.unread(currChar);
+				currState = dfa.getStartState();
 				
-				//now consume all the remaining chars until a space/tab/newline/carriage return is reached
-				tempChar = peek();
+				int temp = peek();
+				nextState = dfa.getNextState(currState, (char) temp);
 				
-				while(tempChar == ' ' || tempChar == '\t' || tempChar == '\n' || tempChar == '\r') {
-					reader.read();
-					tempChar = peek();
+				//While there are consecutive characters that are invalid
+				//read them in and add them to an invalid token
+				while (nextState == -1 || dfa.isDeadState(nextState) || temp == '\n') {
+					if (temp == -1 || peek() == 65535)
+						break;
+					invalid.append((char)reader.read());
+					temp = peek();
+					nextState = dfa.getNextState(currState, (char) temp);
 				}
 				
-					
-				if(dfa.isFinalState(currState))
-					System.out.println(dfa.getTokenName(currState) + " " + token.deleteCharAt(token.length() - 1));
-				else
-					System.out.println("Invalid token: " + token.deleteCharAt(token.length() - 1));
-				
-				currState = dfa.getStartState(); // start from the beginning of DFA for the next iteration
-				token = new StringBuilder(); // reset token too
-			}		
-			
-			else
-				currState = nextState;
+				//If the invalid characters we read in weren't all whitespace
+				//Print out an invalid token
+				if (invalid.length() > 0 && !isWhitespace(invalid.toString())) {
+					System.out.println("INVALID " + invalid.toString().trim());
+				}
+				token = new StringBuilder();
+			}
 		}
 		
-
-		
+		//Print out the last token of the file after reading EOF
+		if (token.length() > 0) {
+			if (dfa.isFinalState(currState)) {
+				System.out.println(dfa.getTokenName(currState) + " " + token.toString());
+			} else {
+				System.out.println("INVALID " + token.toString().trim());
+			}
+		}
 	}
 	
-	public char peek() throws IOException {
+	//Look forward in the input stream
+	public int peek() throws IOException {
 		int c = reader.read();
 		reader.unread(c);
-		return (char) c;
+		return c;
+	}
+	
+	//Check if a string contains all whitespace
+	public boolean isWhitespace(String s) {
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (c != ' ' && c != '\t'&& c != '\n' && c != '\r') {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	public static void main(String[] args) throws Exception {
-		SpecificationReader sr = new SpecificationReader("sample_spec.txt");
+		SpecificationReader sr = new SpecificationReader("test_spec.txt");
 		NFA nfa = sr.run();
 		DFA dfa = NFAConverter.NFAtoDFA(nfa);
 		System.out.println(dfa);
-		DFAWalker walker = new DFAWalker("sample_input.txt", dfa);
+		DFAWalker walker = new DFAWalker("test_input.txt", dfa);
 		walker.walk();
 	}
 }
