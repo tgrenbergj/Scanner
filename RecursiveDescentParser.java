@@ -44,7 +44,7 @@ public class RecursiveDescentParser {
 			if (rexpprime == null) {
 				return rexp1;
 			}
-			return NFATools.concat(rexp1, rexpprime);
+			return NFATools.union(rexp1, rexpprime);
 		} else {
 			return null;
 		}
@@ -277,20 +277,5 @@ public class RecursiveDescentParser {
 				CLS_CHAR.add("" + (char)i);
 			}
 		}
-	}
-	
-	public static void main(String[] args) throws IOException {
-		new RecursiveDescentParser("[0-9]", null).rexp();
-		Map<String, NFA> classes = new HashMap<String, NFA>();
-		classes.put("DIGIT", new RecursiveDescentParser("[0-9]", null).run());
-		classes.put("NON-ZERO", new RecursiveDescentParser("[^0] IN ©DIGIT©", classes).run());
-		classes.put("CHAR", new RecursiveDescentParser("[a-zA-Z]", classes).run());
-		classes.put("UPPER", new RecursiveDescentParser("[^a-z] IN ©CHAR©", classes).run());
-		classes.put("LOWER", new RecursiveDescentParser("[^A-Z] IN ©CHAR©", classes).run());
-		
-		RecursiveDescentParser rdp = new RecursiveDescentParser("(a|b|c|d)*", classes);
-		NFA nfa = rdp.run();
-		System.out.println(nfa);
-		System.out.println(NFAConverter.NFAtoDFA(nfa));
 	}
 }
