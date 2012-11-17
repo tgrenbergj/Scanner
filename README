@@ -9,6 +9,12 @@ To run other files, use the included shell script named run.sh.  Usage:
 
 ./run.sh spec_file input_file
 
+Note: A very large DFA table prints out before the input.  It is recommended to
+pipe to a file if you would like to read the ouput / see the DFA table.
+The table is best read with line wrapping off.
+
+Our test cases are included inside input/ and their result is in output/
+
 
 File layout:
 ------------
