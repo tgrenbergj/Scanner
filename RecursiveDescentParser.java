@@ -252,7 +252,7 @@ public class RecursiveDescentParser {
 	
 	private void buildSets() {
 		boolean[] exclude = new boolean[256];
-		int[] index_to_exclude = {32, 92, 42, 43, 63, 124, 91, 93, 40, 41, 46, 39, 34};
+		int[] index_to_exclude = {32, 34, 39, 40, 41, 42, 43, 46, 63, 91, 92, 93, 124};
 		for (int i : index_to_exclude) {
 			exclude[i] = true;
 		}
@@ -265,7 +265,7 @@ public class RecursiveDescentParser {
 		}
 
 		exclude = new boolean[256];
-		index_to_exclude = new int[] {92, 91, 93, 94, 45};
+		index_to_exclude = new int[] {45, 91, 92, 93, 94};
 		for (int i : index_to_exclude) {
 			exclude[i] = true;
 		}
