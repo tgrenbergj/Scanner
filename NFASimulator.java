@@ -7,7 +7,6 @@ public class NFASimulator {
 	private PushbackReader reader;
 	private List<Integer> maxClones = new ArrayList<Integer>(); //holds max number of clones
 	private Set<Integer> nextStates = new HashSet<Integer>(); //All the next states returned by nfa
-	private List<Integer> statesList = new LinkedList<Integer>();
 	int cloneCount = 0;
 	
 	public NFASimulator(NFA nfa, String file)throws FileNotFoundException{
@@ -31,6 +30,7 @@ public class NFASimulator {
 		while(peek() != -1 && peek() != 65535){
 			curChar = (char)reader.read();
 			cache.addAll(nextStates);
+			maxClones.add(nextStates.size());
 			Set<Integer> currentTransitions = nfa.getNextStates(nextStates, curChar);
 			nextStates.clear();
 			nextStates.addAll(currentTransitions);
@@ -80,6 +80,23 @@ public class NFASimulator {
 					currentIdent = "INVALID";
 				}
 				else if(currentIdent.equals("INVALID")){ //If there is an invalid token before us but this makes us valid then we should print invalid
+					//Lets check if this takes us from invalid to valid
+				//	char next = (char)reader.read();
+					currentTransitions.clear();
+					currentTransitions.addAll(nfa.getNextStates(nextStates, curChar));
+					currentTransitions.addAll(nfa.getEpsilonClosure(currentTransitions));
+					boolean nulls = true;
+					for(int st:currentTransitions){
+						if(nfa.getTokenNames(st)!=null){
+							nulls = false;
+						}
+					}
+					if(currentTransitions.size()!=0 || !nulls){
+						validToken.append(curChar);
+						nextStates.clear();
+						nextStates.addAll(currentTransitions);
+						continue;
+					}
 					Set<Integer> begin = new HashSet<Integer>();
 					begin.add(curState);
 					begin.addAll(nfa.getEpsilonClosure(curState));
@@ -162,6 +179,7 @@ public class NFASimulator {
 		if(!isWhitespace(validToken.toString()))
 		System.out.println(currentIdent + " "+ validToken.toString().trim());
 		System.out.println("Total transitions made "+ totalTransitions);
+		System.out.println("Max Clones made by NFA " + Collections.max(maxClones));
 	}
 
 	//Look forward in the input stream
