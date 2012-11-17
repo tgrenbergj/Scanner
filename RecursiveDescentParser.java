@@ -14,7 +14,7 @@ public class RecursiveDescentParser {
 	private Set<String> CLS_CHAR;
 	private NFA dot;
 	private Map<String, NFA> charClasses;
-	private static char EPSILON = (char) 169;
+	private static char EPSILON = (char) 7;
 	
 	public RecursiveDescentParser(String s, Map<String, NFA> charClasses) {
 		this.charClasses = charClasses;

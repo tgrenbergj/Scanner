@@ -9,7 +9,7 @@ import java.util.*;
 public class SpecificationReader {
 	String fileName;
 	Scanner scan;
-	private static char EPSILON = (char) 169;
+	private static char EPSILON = (char) 7;
 	
 	public SpecificationReader(String fileName){
 		this.fileName = fileName;
