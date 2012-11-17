@@ -1,0 +1,27 @@
+$DIGIT [0-9]
+$NON-ZERO [^0] IN $DIGIT
+$CHAR [a-zA-Z]
+$UPPER [^a-z] IN $CHAR
+$LOWER [^A-Z] IN $CHAR
+
+$VAR ($LOWER)+
+$INT ($NON-ZERO ($DIGIT)* | 0)
+$OCTAL 0 ([0-7])+
+$HEX 0x ( $DIGIT | [A-F] )+
+$STRING \" ($CHAR | $DIGIT)* \"
+$PRINT PRINT
+$FOR FOR
+$CURLYL {
+$CURLYR }
+$PARENL \(
+$PARENR \)
+$SEMICOLON ;
+$EQUALS =
+$LEQ <=
+$GEQ >=
+$LESS <
+$GREATER >
+$ADD \+
+$INC \+\+
+$SUB -
+$DEC --
