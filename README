@@ -1,0 +1,51 @@
+Instructions:
+-------------
+Use the Makefile to build the application. The following targets should be used:
+
+build: compiles the project
+run: runs a simple test case
+
+To run other files, use the included shell script named run.sh.  Usage:
+
+./run.sh spec_file input_file
+
+
+File layout:
+------------
+
+Runner.java
+	-A runner for the project.  Takes in two parameters, the first being
+	 a specification, and the second being an input file.
+
+DFAWalker.java
+	-Controls the logic of parsing a text file and walking over the DFA
+	 table.  It also outputs each token in the form IDENTIFIER_NAME TOKEN_TEXT.
+	 
+FiniteAutomata.java
+	-Has some common data structures/methods used by both NFAs and DFAs.
+	
+DFA.java
+	-Represents a DFA.
+	
+NFA.java
+	-Represents an NFA.
+
+NFATools.java
+	-A class with static methods that modify NFAs.  Does things like union,
+	 concatenate, etc.
+
+NFAConverter.java
+	-A class with a static method to convert an NFA to a DFA.
+
+SpecificationReader.java
+	-Reads in the specification file, and returns a single NFA that recognizes
+	 the given language.
+
+RecursiveDescentParser.java
+	-Takes in a string and character classes, and returns an NFA that represents
+	 the single regex statement the string contained.  Called once per
+	 character class and identifier.
+
+NFASimulator.java
+	-Simulates the same behavior as the DFAWalker, except uses the NFA instead.
+	 This is our implementation of the bonus section of the project.
