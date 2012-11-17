@@ -7,7 +7,7 @@ public class NFARunner {
 	public static void main(String[] args) {
 		if (args.length != 2) {
 			System.err.println("Not enough arguments.");
-			System.err.println("Usage: java Runner spec_file input_file");
+			System.err.println("Usage: java NFARunner spec_file input_file");
 			System.exit(1);
 		}
 		
