@@ -1,7 +1,13 @@
 import java.io.*;
 import java.util.*;
-//Parser
 
+/**
+ * A recursive descent parser as described in the project regex document.
+ * Most methods return a new NFA, and that NFA is then unioned or concatenated
+ * with other NFAs as you travel back in the recursion.
+ * 
+ * Two character classes are also defined, RE_CHAR and CLS_CHAR.
+ */
 public class RecursiveDescentParser {
 	private PushbackInputStream in;
 	private Set<String> RE_CHAR;
@@ -232,12 +238,20 @@ public class RecursiveDescentParser {
 		}
 	}
 
+	/**
+	 * Peek at the next character in the input stream.
+	 * @return The next character in the input stream.
+	 */
 	public char peek() throws IOException {
 		int c = in.read();
 		in.unread(c);
 		return (char) c;
 	}
 	
+	/**
+	 * A method to read all spaces, since we are ignoring them in the
+	 * specification.
+	 */
 	public void readSpaces() throws IOException {
 		while (in.available() > 0) {
 			int c = peek();
@@ -250,6 +264,9 @@ public class RecursiveDescentParser {
 		}
 	}
 	
+	/**
+	 * Create RE_CHAR, CLS_CHAR, and the NFA represented by the '.' in regex.
+	 */
 	private void buildSets() {
 		boolean[] exclude = new boolean[256];
 		int[] index_to_exclude = {32, 34, 39, 40, 41, 42, 43, 46, 63, 91, 92, 93, 124};

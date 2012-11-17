@@ -1,11 +1,11 @@
 import java.util.*;
 
-/*
- * The first dimension is an index into the state of the NFA
- * The second dimension is an index into the transitions possible for the nfa
- * nfa[0...n-1][0] will always contain a set of epsilon transitions for that state
+/**
+ * A class that represents an NFA.  Since it is created dynamically, it is
+ * represented by an array list, where each entry is a different state.
+ * Each state has a mapping from a character to a set of states that
+ * character will transition to.
  */
-
 public class NFA extends FiniteAutomata {
 
 	private ArrayList<Map<Character, Set<Integer>>> nfa;

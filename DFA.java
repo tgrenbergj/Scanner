@@ -1,5 +1,11 @@
 import java.util.*;
 
+/**
+ * Represents a DFA, backed by an array.  The rows of the array are the
+ * states of the DFA, and the columns are the single character transitions.
+ * You can find which character maps to which column by using the HashMap
+ * transitions, and do the reverse with revTransitions.
+ */
 public class DFA extends FiniteAutomata {
 
 	private int[][] dfa;
