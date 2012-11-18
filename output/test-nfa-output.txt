@@ -1,11 +1,6 @@
-$DIGIT [0-24-9]
-$THREE [^3] IN $DIGIT
-$CHAR [A-Za-z]
-$UPPER [^a-z] IN $CHAR
-$LOWER [^A-Z] IN $CHAR
-
-$INT $THREE ($THREE)*
-$VAR $UPPER ($LOWER)*
-$DOT ww (.)* 1 \. 2 (.)* ww
-$RE_ESC ( \  | \\ | \* | \+ | \? | \| | \[ | \] | \( | \) | \. | \' | \" )
-$CLS_ESC [\\\^\-\[\] ]
+IDENTIFIER abcde12345
+INVALID !
+PLUS +
+PLUS +
+Total transitions made 70
+Max Clones made by NFA 9
