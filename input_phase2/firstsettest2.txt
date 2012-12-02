@@ -1,0 +1,17 @@
+%% Tokens   /* This section specifies a list of  all the tokens or terminals used in the grammar  separated by spacing*/
+
++ - * ( ) number
+
+%% Start  /* This section specifies the start symbol of the grammar */
+
+<exp>
+
+%% Rules  /* This section specifies the rules – non terminals are enclosed in < > - BNF notation is used */
+
+<exp> -> <term> <exp'>
+<exp'> -> <addop> <term> <exp'> | EPSILON
+<addop> -> + | -
+<term> -> <factor> <term'>
+<term'> -> <mulop> <factor> <term'> | EPSILON
+<mulop> -> *
+<factor> -> ( <exp> ) | number
