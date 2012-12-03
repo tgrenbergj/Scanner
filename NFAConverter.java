@@ -76,11 +76,12 @@ public class NFAConverter {
 						if (nfa.getTokenNames(finalState) != null) {
 							String newTokenName = (String) nfa.getTokenNames(finalState).toArray()[0];
 							if (tokenName != null && !tokenName.equals(newTokenName)) {
-								if (nfa.getTokenRank(tokenName) > nfa.getTokenRank(newTokenName)) {
-									System.err.printf("WARNING: Ambiguous state %d, matches both %s and %s.  %s was defined later.\n",
+								//TODO change this to < after fixing the token reader
+								if (nfa.getTokenRank(tokenName) < nfa.getTokenRank(newTokenName)) {
+									System.err.printf("WARNING: Ambiguous state %d, matches both %s and %s.  Using %s, was defined first.\n",
 										i, tokenName, newTokenName, tokenName);
 								} else {
-									System.err.printf("WARNING: Ambiguous state %d, matches both %s and %s.  %s was defined later.\n",
+									System.err.printf("WARNING: Ambiguous state %d, matches both %s and %s.  Using %s, was defined first.\n",
 											i, tokenName, newTokenName, newTokenName);
 									tokenName = newTokenName;
 								}
