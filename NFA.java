@@ -11,6 +11,7 @@ public class NFA extends FiniteAutomata {
 	private ArrayList<Map<Character, Set<Integer>>> nfa;
 	private Set<Character> transitions;
 	private Map<Integer, Set<String>> tokenNames;
+	private Map<String, Integer> tokenOrder;
 	private static char EPSILON = (char) 169;
 	
 	/**
@@ -37,6 +38,18 @@ public class NFA extends FiniteAutomata {
 		nfa = new ArrayList<Map<Character, Set<Integer>>>();
 		transitions = new HashSet<Character>();
 		tokenNames = new HashMap<Integer, Set<String>>();
+		tokenOrder = new HashMap<String, Integer>();
+	}
+	
+	public void setTokenOrder(Map<String, Integer> tokenOrder) {
+		this.tokenOrder = tokenOrder;
+	}
+	
+	public int getTokenRank(String token) {
+		if (tokenOrder != null) {
+			return tokenOrder.get(token);
+		}
+		return -1;
 	}
 	
 	/**

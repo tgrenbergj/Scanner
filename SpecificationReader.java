@@ -7,12 +7,16 @@ import java.util.*;
  * combined into a large NFA which can be then converted to a DFA.
  */
 public class SpecificationReader {
-	String fileName;
-	Scanner scan;
-	private static char EPSILON = (char) 7;
+	private final char EPSILON = (char) 7;
+	private String fileName;
+	private Scanner scan;
+	private Map<String, Integer> tokenOrder;
+	private int tokenCount;
 	
 	public SpecificationReader(String fileName){
 		this.fileName = fileName;
+		tokenCount = 0;
+		tokenOrder = new HashMap<String,Integer>();
 	}
 	
 	/**
@@ -51,6 +55,7 @@ public class SpecificationReader {
 		while(line.length()!=0){
 			int extract = line.indexOf(' ');
 			String entry = line.substring(1, extract);
+			tokenOrder.put(entry, tokenCount++);
 			for(String s:table.keySet()){
 				if(line.contains("$"+s)){
 					line = line.replace("$"+s,EPSILON+s+EPSILON);
@@ -73,7 +78,7 @@ public class SpecificationReader {
 			nfas[i++] = nfa;
 		
 		NFA combinedNFA = NFATools.unionAll(true, nfas);
-		
+		combinedNFA.setTokenOrder(tokenOrder);
 		return combinedNFA;
 	}
 	

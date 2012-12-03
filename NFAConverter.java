@@ -74,11 +74,18 @@ public class NFAConverter {
 					String tokenName = null;
 					for (int finalState : curState.name) {
 						if (nfa.getTokenNames(finalState) != null) {
-							if (tokenName != null && !tokenName.equals(nfa.getTokenNames(finalState).toArray()[0])) {
-								System.err.printf("WARNING: Ambiguous state %d, matches both %s and %s.  Keeping as %s.\n",
-										i, tokenName, nfa.getTokenNames(finalState).toArray()[0], tokenName);
+							String newTokenName = (String) nfa.getTokenNames(finalState).toArray()[0];
+							if (tokenName != null && !tokenName.equals(newTokenName)) {
+								if (nfa.getTokenRank(tokenName) > nfa.getTokenRank(newTokenName)) {
+									System.err.printf("WARNING: Ambiguous state %d, matches both %s and %s.  %s was defined later.\n",
+										i, tokenName, newTokenName, tokenName);
+								} else {
+									System.err.printf("WARNING: Ambiguous state %d, matches both %s and %s.  %s was defined later.\n",
+											i, tokenName, newTokenName, newTokenName);
+									tokenName = newTokenName;
+								}
 							} else {
-								tokenName = (String) nfa.getTokenNames(finalState).toArray()[0];
+								tokenName = newTokenName;
 							}
 						}
 					}
