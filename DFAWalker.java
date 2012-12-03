@@ -1,90 +1,95 @@
 import java.io.*;
 
-/**
- * A table walker that takes in an input file and a DFA.  The DFA table
- * will then be used to traverse the input file and determine valid tokens.
- */
+
 public class DFAWalker {
 	private DFA dfa;
 	private PushbackReader reader;
 	
-	public DFAWalker(String fileName, DFA dfa) throws FileNotFoundException {
+	/**
+	 * Run walker on a file
+	 */
+	public DFAWalker(File file, DFA dfa) throws FileNotFoundException {
 		this.dfa = dfa;
-		this.reader = new PushbackReader(new FileReader(fileName));
+		this.reader = new PushbackReader(new FileReader(file));
 	}
 	
 	/**
-	 * Runs the table walker on the input file.  Outputs every token it
-	 * encounters, along with all invalid tokens it encounters that aren't
-	 * all whitespace.  
+	 * Run walker on a string
 	 */
-	public void walk() throws IOException{
-		int currChar;
-		
-		int currState = dfa.getStartState();
+	public DFAWalker(String text, DFA dfa) throws FileNotFoundException {
+		this.dfa = dfa;
+		InputStream in = new ByteArrayInputStream(text.getBytes());
+		this.reader = new PushbackReader(new InputStreamReader(in));
+	}
+	
+	public Token nextToken() throws IOException {
+		Token token = null;
+		StringBuilder sb = new StringBuilder();
+		int curState = dfa.getStartState();
 		int nextState;
-		
-		StringBuilder token = new StringBuilder();
-		
-		//Run until we hit EOF
+		int curChar = -1;
 		while (peek() != -1 && peek() != 65535) {
+			curChar = reader.read();
+			nextState = dfa.getNextState(curState, (char) curChar);
 			
-			//Get the next character and see where it transitions
-			currChar = reader.read();
-			nextState = dfa.getNextState(currState, (char) currChar);
-			
-			//If the next state is a valid state, append the char and move on
 			if ( nextState != -1 && !dfa.isDeadState(nextState) ) {
-				token.append((char) currChar);
-				currState = nextState;
-			//Otherwise we are at the end of a token
+				sb.append((char) curChar);
+				curState = nextState;
 			} else {
-				StringBuilder invalid = new StringBuilder();
-				//Print out the valid token if it has anything in it, and
-				//we were at a final state
-				if (dfa.isFinalState(currState) && token.length() > 0) {
-					System.out.println(dfa.getTokenName(currState) + " " + token.toString());
-				} else {
-					//Otherwise we need to add this on to the invalid token
-					invalid.append(token.toString());
-				}
-				//Unread the character that broke the token and reset
-				reader.unread(currChar);
-				currState = dfa.getStartState();
 				
-				int temp = peek();
-				nextState = dfa.getNextState(currState, (char) temp);
+				if ( dfa.isFinalState(curState) && sb.length() > 0 ) {
+					token = new Token(Token.TokenType.VALID, dfa.getTokenName(curState), sb.toString());
+					reader.unread(curChar);
+					break;
+				}
+				
+				//Unread the character that broke the token and reset
+				reader.unread(curChar);
+				curState = dfa.getStartState();
+				
+				curChar = peek();
+				nextState = dfa.getNextState(curState, (char) curChar);
 				
 				//While there are consecutive characters that are invalid
 				//read them in and add them to an invalid token
 				while (nextState == -1 || dfa.isDeadState(nextState)) {
-					if (temp == -1 || peek() == 65535)
+					if (curChar == -1 || peek() == 65535)
 						break;
-					invalid.append((char)reader.read());
-					if (temp == '\n')
+					sb.append((char)reader.read());
+					if (curChar == '\n' || curChar == '\r')
 						break;
-					temp = peek();
-					nextState = dfa.getNextState(currState, (char) temp);
+					curChar = peek();
+					nextState = dfa.getNextState(curState, (char) curChar);
 				}
 				
 				//If the invalid characters we read in weren't all whitespace
 				//Print out an invalid token
-				if (invalid.length() > 0 && !isWhitespace(invalid.toString())) {
-					System.out.println("INVALID " + invalid.toString().trim());
+				if (sb.length() > 0 && isWhitespace(sb.toString())) {
+					token = new Token(Token.TokenType.WHITESPACE, "WHITESPACE", sb.toString());
+				} else {
+					token = new Token(Token.TokenType.INVALID, "INVALID", sb.toString());
 				}
-				token = new StringBuilder();
+				break;
 			}
 		}
 		
-		//Print out the last token of the file after reading EOF
-		if (token.length() > 0) {
-			if (dfa.isFinalState(currState)) {
-				System.out.println(dfa.getTokenName(currState) + " " + token.toString());
+		if (token == null) {
+			if (sb.length() > 0) {
+				if (dfa.isFinalState(curState)) {
+					token = new Token(Token.TokenType.VALID, dfa.getTokenName(curState), sb.toString());
+				} else if (isWhitespace(sb.toString())) {
+					token = new Token(Token.TokenType.WHITESPACE, "WHITESPACE", sb.toString());
+				} else {
+					token = new Token(Token.TokenType.INVALID, "INVALID", sb.toString());
+				}
 			} else {
-				System.out.println("INVALID " + token.toString().trim());
+				token = new Token(Token.TokenType.DONE);
 			}
 		}
+
+		return token;
 	}
+	
 	
 	/**
 	 * Looks at the next character in the input stream, but does not
@@ -92,7 +97,7 @@ public class DFAWalker {
 	 * 
 	 * @return The next character in the input stream
 	 */
-	public int peek() throws IOException {
+	private int peek() throws IOException {
 		int c = reader.read();
 		reader.unread(c);
 		return c;
@@ -104,7 +109,7 @@ public class DFAWalker {
 	 * @param s The string to check.
 	 * @return True if the string is all whitespace, false otherwise.
 	 */
-	public boolean isWhitespace(String s) {
+	private boolean isWhitespace(String s) {
 		for (int i = 0; i < s.length(); i++) {
 			char c = s.charAt(i);
 			if (c != ' ' && c != '\t'&& c != '\n' && c != '\r') {

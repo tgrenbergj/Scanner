@@ -30,8 +30,14 @@ public class Runner {
 			System.out.println();
 			System.out.println("Table Walker Output:");
 			System.out.println();
-			DFAWalker walker = new DFAWalker(input, dfa);
-			walker.walk();
+			File file = new File("src\\input_phase2\\minire_input.txt");
+			DFAWalker walker = new DFAWalker(file, dfa);
+			Token token = walker.nextToken();
+			while (!token.isDone()) {
+				if (!token.isWhitespace())
+					System.out.printf("[%s] -> [%s]\n", token.getName(), token.getToken());
+				token = walker.nextToken();
+			}
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Files entered as parameters do not exist");
 			fnfe.printStackTrace();
