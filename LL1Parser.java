@@ -3,7 +3,7 @@ import java.util.*;
 
 
 public class LL1Parser {
-
+	
 	private Grammar grammar;
 	private Stack<String> stack;
 	public LL1Parser(Grammar grammar){
@@ -22,18 +22,20 @@ public class LL1Parser {
 		}
 		
 		while (grammar.isNonTerminal(top)){
-			String[] rule =  grammar.table[grammar.nontermMap.get(top)][grammar.termMap.get(token.getName())];
+			String[] rule =  grammar.getRule(top, token.getName());
 			if (rule == null) {
 				System.err.println("terminal");
 				return false;
 			}
 			stack.pop();
-			if (!rule[0].equals("EPSILON"))
+			if (!rule[0].equals(Grammar.EPSILON))
 				pushOnStack(rule);
 			top = stack.peek();
 		}
+		String topName = grammar.getTerminalName(top);
+		String tokenName = token.getName();
 		
-		if(token.getName().equals(top)){
+		if(tokenName.equals(topName)){
 			stack.pop();
 			return true;
 		}
@@ -53,23 +55,29 @@ public class LL1Parser {
 	 * Temporary main method
 	 */
 	public static void main(String[] args)  throws IOException {
-		Grammar grammar = GrammarReader.read("src\\input_phase2\\minire_grammar.txt");
-		System.out.println(grammar);
-		SpecificationReader sr = new SpecificationReader("src\\input_phase2\\minire_spec.txt");
+		String grammar_file = "src\\input_phase2\\minire_grammar.txt";
+		String spec_file = "src\\input_phase2\\minire_spec.txt";
+		String input_file = "src\\input_phase2\\minire_input.txt";
+		String[] specialTerminals = {"ASCII-STR", "REGEX", "ID", "$"};
+		
+		Grammar grammar = GrammarReader.read(grammar_file, spec_file, specialTerminals);
+		SpecificationReader sr = new SpecificationReader(spec_file);
 		NFA nfa = sr.run();
 		DFA dfa = NFAConverter.NFAtoDFA(nfa);
 		
-		File file = new File("src\\input_phase2\\minire_input.txt");
+		File file = new File(input_file);
 		
 		LL1Parser parser = new LL1Parser(grammar);
 		DFAWalker walker = new DFAWalker(file, dfa);
 		Token token = walker.nextToken();
+		
 		while (!token.isDone()) {
 			if (token.getType().equals(Token.TokenType.INVALID)) {
-				System.out.printf("Invalid token [%s].  Stopping.\n", token.getName());
+				System.out.printf("Invalid token [%s].  Stopping.\n", token);
+				break;
 			} else if (token.getType().equals(Token.TokenType.VALID)) {
-				System.out.println(parser.parseToken(token));
-				System.out.println(token.getToken());
+				boolean valid = parser.parseToken(token);
+				System.out.printf("Valid: %s [%s]\n", valid ? "true " : "false", token);
 			}
 			token = walker.nextToken();
 		}
