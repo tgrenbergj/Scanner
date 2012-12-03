@@ -4,7 +4,7 @@ $ASCII [ -~]
 $NONQUOTE [^"] IN $ASCII
 $NONSINGLEQUOTE [^'] IN $ASCII
 
-$ASCII-STR \" ( $NONQUOTE | \\\" )* \"
+$ASCII-STR "($NONQUOTE|\\")*"
 $BEGIN begin
 $END end
 $EQ =  
@@ -24,6 +24,6 @@ $DIFF diff
 $UNION union 
 $INTERS inters
 $MAXFREQ maxfreqstring 
-$REGEX \'($NONSINGLEQUOTE|\\\')*\'
+$REGEX '($NONSINGLEQUOTE|\\')*'
 $ID $LETTER ($LETTER|$DIGIT|_|)($LETTER|$DIGIT|_|)($LETTER|$DIGIT|_|)($LETTER|$DIGIT|_|)($LETTER|$DIGIT|_|)($LETTER|$DIGIT|_|)($LETTER|$DIGIT|_|)($LETTER|$DIGIT|_|)($LETTER|$DIGIT|_|)
 $NUMBER ($DIGIT)+
