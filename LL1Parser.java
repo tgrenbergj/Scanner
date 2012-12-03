@@ -1,4 +1,5 @@
-import java.util.Stack;
+import java.io.*;
+import java.util.*;
 
 
 public class LL1Parser {
@@ -12,17 +13,16 @@ public class LL1Parser {
 		stack.push(grammar.start);
 	}
 	
-	public boolean parseToken(String token){
+	public boolean parseToken(Token token){
 		String top = stack.peek();
 		
-		if(top.equals(token)&& token.equals("$")){
+		if(top.equals(token.getName())&& token.getName().equals("$")){
 			stack.pop();
 			return true;
 		}
 		
 		while (grammar.isNonTerminal(top)){
-			System.out.println(stack);
-			String[] rule =  grammar.table[grammar.nontermMap.get(top)][grammar.termMap.get(token)];
+			String[] rule =  grammar.table[grammar.nontermMap.get(top)][grammar.termMap.get(token.getName())];
 			if (rule == null) {
 				System.err.println("terminal");
 				return false;
@@ -33,8 +33,7 @@ public class LL1Parser {
 			top = stack.peek();
 		}
 		
-		if(token.equals(top)){
-			System.out.println(stack);
+		if(token.getName().equals(top)){
 			stack.pop();
 			return true;
 		}
@@ -53,13 +52,26 @@ public class LL1Parser {
 	/**
 	 * Temporary main method
 	 */
-	public static void main(String[] args) {
-		Grammar grammar = GrammarReader.read("src\\input_phase2\\microsoft_grammar.txt");
-		LL1Parser parser = new LL1Parser(grammar);
+	public static void main(String[] args)  throws IOException {
+		Grammar grammar = GrammarReader.read("src\\input_phase2\\minire_grammar.txt");
+		System.out.println(grammar);
+		SpecificationReader sr = new SpecificationReader("src\\input_phase2\\minire_spec.txt");
+		NFA nfa = sr.run();
+		DFA dfa = NFAConverter.NFAtoDFA(nfa);
 		
-		String[] tokens = {"int", "+", "int", "*", "int", "$"};
-		for (int i = 0; i < tokens.length; i++) {
-			parser.parseToken(tokens[i]);
+		File file = new File("src\\input_phase2\\minire_input.txt");
+		
+		LL1Parser parser = new LL1Parser(grammar);
+		DFAWalker walker = new DFAWalker(file, dfa);
+		Token token = walker.nextToken();
+		while (!token.isDone()) {
+			if (token.getType().equals(Token.TokenType.INVALID)) {
+				System.out.printf("Invalid token [%s].  Stopping.\n", token.getName());
+			} else if (token.getType().equals(Token.TokenType.VALID)) {
+				System.out.println(parser.parseToken(token));
+				System.out.println(token.getToken());
+			}
+			token = walker.nextToken();
 		}
 
 	}
