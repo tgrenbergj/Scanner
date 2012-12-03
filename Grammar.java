@@ -263,4 +263,22 @@ public class Grammar {
 		}
 		return tempSet;
 	}
+	
+	/**
+	 * This method returns if s is terminal or not
+	 * @param s the string to be checked
+	 * @return
+	 */
+	public boolean isTerminal(String s){
+		return terminals.contains(s);
+	}
+	
+	/**
+	 * This method returns if s is non terminal or not
+	 * @param s
+	 * @return
+	 */
+	public boolean isNonTerminal(String s){
+		return nonterminals.contains(s);
+	}
 }
