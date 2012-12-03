@@ -21,11 +21,11 @@ public class Runner {
 		String input = args[1];
 		
 		try {
-			SpecificationReader sr = new SpecificationReader(spec);
+			SpecificationReader sr = new SpecificationReader("src\\input_phase2\\minire_spec.txt");
 			NFA nfa = sr.run();
 			DFA dfa = NFAConverter.NFAtoDFA(nfa);
 			System.out.println("DFA Table:");
-			System.out.println(dfa);
+			//System.out.println(dfa);
 			System.out.println();
 			System.out.println();
 			System.out.println("Table Walker Output:");
@@ -35,7 +35,7 @@ public class Runner {
 			Token token = walker.nextToken();
 			while (!token.isDone()) {
 				if (!token.isWhitespace())
-					System.out.printf("[%s] -> [%s]\n", token.getName(), token.getToken());
+					System.out.printf("[%s]\n", token);
 				token = walker.nextToken();
 			}
 		} catch (FileNotFoundException fnfe) {
