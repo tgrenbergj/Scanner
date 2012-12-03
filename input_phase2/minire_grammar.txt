@@ -1,0 +1,8 @@
+%% Tokens   /* This section specifies a list of  all the tokens or terminals used in the grammar  separated by spacing*/
+begin end  ID  =  replace with in ; recursivereplace  >!  print ( )  ,  # find diff   union inters maxfreqstring REGEX ASCII-STR
+%% Start  /* This section specifies the start symbol of the grammar */
+
+<MiniRE-program>
+
+%% Rules  /* This section specifies the rules – non terminals are enclosed in < > - BNF notation is used */
+
