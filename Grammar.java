@@ -6,10 +6,13 @@ import java.util.*;
  */
 public class Grammar {
 	
-	private final String EPSILON = "EPSILON";
+	public static final String EPSILON = "<epsilon>";
 	Map<String, List<String[]>> rules;
 	String start;
 	Set<String> terminals;
+	Set<String> dynamicTerminals;
+	Map<String, String> termToNameDict;
+	Map<String, String> nameToTermDict;
 	Set<String> nonterminals;
 	Map<String, Set<String>> firstSets;
 	Map<String, Set<String>> followSets;
@@ -18,10 +21,18 @@ public class Grammar {
 	Map<String, Integer> termMap;
 	private int longestRule;
 	
-	public Grammar() {
+	public Grammar(String[] specialTerminals) {
+		
+		dynamicTerminals = new HashSet<String>();
+		for (String s : specialTerminals) {
+			dynamicTerminals.add(s);
+		}
+		
 		rules = new HashMap<String, List<String[]>>();
 		terminals = new HashSet<String>();
 		terminals.add("$");
+		nameToTermDict = new HashMap<String, String>();
+		termToNameDict = new HashMap<String, String>();
 		nonterminals = new HashSet<String>();
 		firstSets = new HashMap<String, Set<String>>();
 		followSets = new HashMap<String, Set<String>>();
@@ -262,6 +273,42 @@ public class Grammar {
 			tempSet.add(EPSILON);
 		}
 		return tempSet;
+	}
+	
+	public void makeTokenMap(String file) {
+		try {
+			SpecificationReader sr = new SpecificationReader(file);
+			NFA nfa = sr.run();
+			DFA dfa = NFAConverter.NFAtoDFA(nfa);
+			DFAWalker walker;
+			for (String term : terminals) {
+				if (dynamicTerminals.contains(term)) {
+					nameToTermDict.put(term, term);
+					termToNameDict.put(term, term);
+				} else {
+					walker = new DFAWalker(term, dfa);
+					Token token = walker.nextToken();
+					if (token.getType().equals(Token.TokenType.VALID)) {
+						nameToTermDict.put(token.getName(), term);
+						termToNameDict.put(term, token.getName());
+					} else {
+						throw new NoSuchElementException();
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("Could not read token specification file.");
+		}
+	}
+	
+	public String[] getRule(String nonterm, String term) {
+		int row = nontermMap.get(nonterm);
+		int col = termMap.get(nameToTermDict.get(term));
+		return table[row][col];
+	}
+	
+	public String getTerminalName(String term) {
+		return termToNameDict.get(term);
 	}
 	
 	/**
