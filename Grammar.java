@@ -13,14 +13,20 @@ public class Grammar {
 	Set<String> nonterminals;
 	Map<String, Set<String>> firstSets;
 	Map<String, Set<String>> followSets;
+	String[][][] table;
+	Map<String, Integer> nontermMap;
+	Map<String, Integer> termMap;
 	private int longestRule;
 	
 	public Grammar() {
 		rules = new HashMap<String, List<String[]>>();
 		terminals = new HashSet<String>();
+		terminals.add("$");
 		nonterminals = new HashSet<String>();
 		firstSets = new HashMap<String, Set<String>>();
 		followSets = new HashMap<String, Set<String>>();
+		nontermMap = new HashMap<String, Integer>();
+		termMap = new HashMap<String, Integer>();
 	}
 	
 	/**
@@ -68,7 +74,7 @@ public class Grammar {
 	/**
 	 * Calculate first sets.
 	 */
-	public void doFirstSets() {
+	public void makeFirstSets() {
 		for (String term: terminals) {
 			Set<String> set = new HashSet<String>();
 			set.add(term);
@@ -107,7 +113,7 @@ public class Grammar {
 	/**
 	 * Calculate follow sets.
 	 */
-	public void doFollowSets() {
+	public void makeFollowSets() {
 		for (String nonterm : nonterminals) {
 			followSets.put(nonterm, new HashSet<String>());
 		}
@@ -141,6 +147,44 @@ public class Grammar {
 		}
 	}
 	
+	/**
+	 * Generate the LL(1) parsing table
+	 */
+	public void makeTable() {
+		table = new String[nonterminals.size()][terminals.size()][];
+		
+		//Create a mapping to the columns of the table
+		int i = 0;
+		for (String term : terminals) {
+			termMap.put(term, i);
+			i++;
+		}
+		
+		//Create a mapping to the rows of the table
+		i = 0;
+		for (String nonterm : nonterminals) {
+			nontermMap.put(nonterm, i);
+			i++;
+		}
+		
+		//Do the algorithm
+		for (String key : nonterminals) {
+			for (String[] rule: rules.get(key)) {
+				Set<String> first = calculateFirstSet(rule);
+				for (String token : first) {
+					if (!token.equals(EPSILON))
+						table[nontermMap.get(key)][termMap.get(token)] = rule;
+				}
+				if (containsEpsilon(first)) {
+					for (String token : followSets.get(key)) {
+						if (!token.equals(EPSILON))
+							table[nontermMap.get(key)][termMap.get(token)] = rule;
+					}
+				}
+			}
+		}
+	}
+	
 	@Override
 	public String toString() {
 		Map<String, Set<String>> firstShort = new HashMap<String, Set<String>>();
@@ -155,12 +199,22 @@ public class Grammar {
 		sb.append(String.format("Non-terminals: %s\n", nonterminals));
 		sb.append(String.format("First sets: %s\n", firstShort));
 		sb.append(String.format("Follow sets: %s\n", followSets));
-		sb.append(String.format("--------Rules:\n"));
+		sb.append(String.format("\n--------Rules:\n"));
 		for (String key : rules.keySet()) {
 			sb.append(String.format("%s:\n", key));
 			for (String[] rule : rules.get(key)) {
 				sb.append(String.format("\t%s\n", Arrays.toString(rule)));
 			}
+		}
+		sb.append("\n--------LL(1) Table\n");
+		for (String nonterm: nonterminals) {
+			sb.append(nonterm + ": ");
+			for (String term: terminals) {
+				sb.append("'" + term + "'->");
+				sb.append(Arrays.toString(table[nontermMap.get(nonterm)][termMap.get(term)]));
+				sb.append("\t");
+			}
+			sb.append("\n");
 		}
 		return sb.toString();
 	}
@@ -186,5 +240,27 @@ public class Grammar {
 				newSet.add(s);
 		}
 		return newSet;
+	}
+	
+	/**
+	 * Calculate the first set of a specific rule
+	 * @param rule The rule to calculate the first set
+	 * @return The first set of the rule
+	 */
+	private Set<String> calculateFirstSet(String[] rule) {
+		Set<String> tempSet = new HashSet<String>();
+		int i = 0;
+		boolean cont = true;
+		while (cont && i < rule.length) {
+			Set<String> curFirst = firstSets.get(rule[i]);
+			tempSet.addAll(removeEpsilon(curFirst));
+			if (!curFirst.contains(EPSILON))
+				cont = false;
+			i = i + 1;
+		}
+		if (cont) {
+			tempSet.add(EPSILON);
+		}
+		return tempSet;
 	}
 }

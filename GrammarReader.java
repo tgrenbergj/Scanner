@@ -34,8 +34,9 @@ public class GrammarReader {
 		if (!readRules())
 			return null;
 		
-		grammar.doFirstSets();
-		grammar.doFollowSets();
+		grammar.makeFirstSets();
+		grammar.makeFollowSets();
+		grammar.makeTable();
 		
 		return grammar;
  	}
@@ -124,7 +125,7 @@ public class GrammarReader {
 	 * Temporary main method
 	 */
 	public static void main(String[] args) {
-		Grammar g = GrammarReader.read("minire.txt");
+		Grammar g = GrammarReader.read("firstsettest2.txt");
 		System.out.println(g);
 	}
 }
