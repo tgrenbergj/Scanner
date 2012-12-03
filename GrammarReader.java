@@ -17,15 +17,15 @@ public class GrammarReader {
 	 * @param file The file containing the grammar
 	 * @return The Grammar object representing the grammar
 	 */
-	public static Grammar read(String file) {
+	public static Grammar read(String gramFile, String tokenFile, String[] specialTerminals) {
 		try {
-			scan = new Scanner(new File(file));
+			scan = new Scanner(new File(gramFile));
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Can not find file " + file);
+			System.err.println("Can not find file " + gramFile);
 			return null;
 		}
 		
-		grammar = new Grammar();
+		grammar = new Grammar(specialTerminals);
 		
 		if (!readTokens())
 			return null;
@@ -37,6 +37,7 @@ public class GrammarReader {
 		grammar.makeFirstSets();
 		grammar.makeFollowSets();
 		grammar.makeTable();
+		grammar.makeTokenMap(tokenFile);
 		
 		return grammar;
  	}
@@ -96,7 +97,7 @@ public class GrammarReader {
 		}
 		while (scan.hasNextLine()) {
 			readBlanks();
-			String[] rules = line.split(" (->|\\|)");
+			String[] rules = line.split(" (->|\\||::=)");
 			String nonterm = rules[0].trim();
 			grammar.addNonterminal(nonterm);
 			for (int i = 1; i < rules.length; i++) {
@@ -118,14 +119,5 @@ public class GrammarReader {
 		while (line.length() == 0) {
 			line = scan.nextLine();
 		}
-	}
-
-	
-	/**
-	 * Temporary main method
-	 */
-	public static void main(String[] args) {
-		Grammar g = GrammarReader.read("firstsettest2.txt");
-		System.out.println(g);
 	}
 }
