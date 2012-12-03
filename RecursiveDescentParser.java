@@ -46,6 +46,16 @@ public class RecursiveDescentParser {
 		readSpaces();
 		if (peek() == '|') {
 			in.read(); // get the pipe
+			//TODO add in the ability for null character
+			if ( peek() == ')' ) {
+				NFA empty = new NFA();
+				empty.addState();
+				empty.setStartState(0);
+				empty.addState();
+				empty.addFinalState(1);
+				empty.addEpsilonTransition(0, 1);
+				return empty;
+			}
 			NFA rexp1 = rexp1();
 			NFA rexpprime = rexpprime();
 			if (rexpprime == null) {
@@ -144,7 +154,6 @@ public class RecursiveDescentParser {
 	}
 	
 	public NFA charclass1() throws IOException {
-		readSpaces();
 		if (peek() == '^') {
 			return excludeset();
 		} else {
@@ -153,7 +162,6 @@ public class RecursiveDescentParser {
 	}
 	
 	public NFA charsetlist() throws IOException {
-		readSpaces();
 		if (peek() == ']') {
 			in.read();  //Read closing bracket
 			return null;  //Actually complete the NFA at this point
@@ -167,7 +175,6 @@ public class RecursiveDescentParser {
 	}
 	
 	public NFA charset() throws IOException{
-		readSpaces();
 		if (peek() == '\\' || CLS_CHAR.contains("" + peek())) {
 			if (peek() == '\\')
 				in.read();
@@ -183,14 +190,11 @@ public class RecursiveDescentParser {
 	}
 	
 	public NFA charsettail(char c) throws IOException{
-		readSpaces();
 		if (peek() == '-') {
 			in.read(); //This will read the dash
 			char cend = (char)in.read(); //This will be the end of a range
 			//Check if the end character of the range is bigger than the start
-			if ((Character.isLowerCase(c) && Character.isLowerCase(cend) && c < cend) || 
-					(Character.isUpperCase(c) && Character.isUpperCase(cend) && c < cend) ||
-					(Character.isDigit(c) && Character.isDigit(cend) && c < cend)) {
+			if (c < cend) {
 				NFA range = new NFA((char)(c+1));
 				for (int i = c+2; i <= cend; i++) {
 					range = NFATools.union(range, new NFA((char)i));
@@ -205,7 +209,6 @@ public class RecursiveDescentParser {
 	}
 	
 	public NFA excludeset() throws IOException {
-		readSpaces();
 		if (peek() == '^') {
 			in.read(); //read caret
 			NFA charset1 = NFATools.compress(charset());
