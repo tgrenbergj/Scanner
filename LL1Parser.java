@@ -29,10 +29,10 @@ public class LL1Parser {
 				return false;
 			}
 		}
-		if(grammar.isNonTerminal(top)){
+		 if (grammar.isNonTerminal(top)){
 			String[] a=  grammar.table[grammar.nontermMap.get(top)][grammar.termMap.get(token)];
-			pushOnStack(a);
 			stack.pop();
+			pushOnStack(a);
 			return true;
 		}
 		else{
@@ -46,10 +46,16 @@ public class LL1Parser {
 		}
 	}
 	/**
-	 * @param args
+	 * Temporary main method
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+		Grammar grammar = GrammarReader.read("src\\input_phase2\\microsoft_grammar.txt");
+		LL1Parser parser = new LL1Parser(grammar);
+		
+		String[] tokens = {"int", "+", "int", "*", "int"};
+		for (int i = 0; i < tokens.length; i++) {
+			System.out.println(parser.parseToken(tokens[i]));
+		}
 
 	}
 

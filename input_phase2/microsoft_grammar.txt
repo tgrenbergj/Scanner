@@ -1,0 +1,13 @@
+%% Tokens   /* This section specifies a list of  all the tokens or terminals used in the grammar  separated by spacing*/
++ * ( ) int
+%% Start  /* This section specifies the start symbol of the grammar */
+
+<E>
+
+%% Rules  /* This section specifies the rules – non terminals are enclosed in < > - BNF notation is used */
+
+<E>  -> <T> <E'>
+<E'> -> + <T> <E'> | EPSILON
+<T>  -> <F> <T'>
+<T'> -> * <F> <T'> |  EPSILON
+<F>  -> ( <E> ) | int
