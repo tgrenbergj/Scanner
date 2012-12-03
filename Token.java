@@ -39,4 +39,8 @@ public class Token {
 		return type.equals(TokenType.WHITESPACE);
 	}
 	
+	public String toString() {
+		return String.format("Type: %s Name: %s Token: %s", type, name, token);
+	}
+	
 }
