@@ -36,12 +36,13 @@ public class SpecificationReader {
 		while(line.length() != 0){
 				int extract = line.indexOf(' ');
 				String entry = line.substring(1, extract);
+				String toSend = line.substring(extract);
+				
 				for(String s:table.keySet()){
-					if(line.contains("$"+s)){
-						line = line.replace("$"+s,EPSILON+s+EPSILON);
+					if(toSend.contains("$"+s)){
+						toSend = toSend.replace("$"+s,EPSILON+s+EPSILON);
 					}
 				}
-				String toSend = line.substring(extract);
 				RecursiveDescentParser rdp = new RecursiveDescentParser(toSend,table);
 				NFA insert = rdp.run();
 				table.put(entry, insert);
@@ -56,12 +57,14 @@ public class SpecificationReader {
 			int extract = line.indexOf(' ');
 			String entry = line.substring(1, extract);
 			tokenOrder.put(entry, tokenCount++);
+			
+			String toSend = line.substring(extract);
 			for(String s:table.keySet()){
-				if(line.contains("$"+s)){
-					line = line.replace("$"+s,EPSILON+s+EPSILON);
+				if(toSend.contains("$"+s)){
+					toSend = toSend.replace("$"+s,EPSILON+s+EPSILON);
 				}
 			}
-			String toSend = line.substring(extract);
+			
 			RecursiveDescentParser rdp = new RecursiveDescentParser(toSend,table);
 			NFA insert = rdp.run();
 			insert.addTokenName(entry);
