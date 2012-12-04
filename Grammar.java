@@ -7,18 +7,33 @@ import java.util.*;
 public class Grammar {
 	
 	public static final String EPSILON = "<epsilon>";
+	
+	//All of the rules of the grammar from the grammar document
 	Map<String, List<String[]>> rules;
+	//The start non-terminal for the grammar
 	String start;
+	//The terminals of the grammar
 	Set<String> terminals;
+	//Dynamic terminals are those that aren't static, such as a REGEX or STRING
 	Set<String> dynamicTerminals;
+	//A match of a terminal's text to its terminal's name from the spec document
 	Map<String, String> termToNameDict;
 	Map<String, String> nameToTermDict;
+	//The non terminals of the grammar
 	Set<String> nonterminals;
+	
+	//First and follow sets
 	Map<String, Set<String>> firstSets;
 	Map<String, Set<String>> followSets;
+	
+	//The LL(1) table
 	String[][][] table;
+	//A mapping from a string to the col/row of the table 
 	Map<String, Integer> nontermMap;
 	Map<String, Integer> termMap;
+	
+	//The length of the longest rule, used to determine max iterations for
+	//first and follow sets
 	private int longestRule;
 	
 	public Grammar(String[] specialTerminals) {
@@ -80,6 +95,47 @@ public class Grammar {
 		List<String[]> ruleList = rules.get(nonterm);
 		ruleList.add(rule);
 		longestRule = Math.max(longestRule, rule.length);
+	}
+	
+	/**
+	 * Given a non-terminal and a terminal literal, get the rule in the
+	 * LL(1) table
+	 * @param nonterm The non-terminal string literal of the form <nonterm>
+	 * @param term The terminal literal text
+	 * @return The rule requested, or null if there is no rule
+	 */
+	public String[] getRule(String nonterm, String term) {
+		int row = nontermMap.get(nonterm);
+		int col = termMap.get(nameToTermDict.get(term));
+		return table[row][col];
+	}
+	
+	/**
+	 * Takes a terminal literal string, and gets returns its $NAME from
+	 * the specification document
+	 * @param term The literal terminal string
+	 * @return The NAME from the specification document
+	 */
+	public String getTerminalName(String term) {
+		return termToNameDict.get(term);
+	}
+	
+	/**
+	 * This method returns if s is terminal or not
+	 * @param s the string to be checked
+	 * @return
+	 */
+	public boolean isTerminal(String s){
+		return terminals.contains(s);
+	}
+	
+	/**
+	 * This method returns if s is non terminal or not
+	 * @param s
+	 * @return
+	 */
+	public boolean isNonTerminal(String s){
+		return nonterminals.contains(s);
 	}
 	
 	/**
@@ -196,6 +252,60 @@ public class Grammar {
 		}
 	}
 	
+	/**
+	 * This solves the issue of not knowing the name of a token.
+	 * When a string matches a token, we have the string that matched
+	 * and the name of the token type that matched it.
+	 * 
+	 * EG "hello there" will match STR given $STR \"[a-z ]*\" 
+	 * EG "begin" will match BEGIN given $BEGIN begin
+	 * 
+	 * Unfortunately, the grammar file does not provide us with the names
+	 * of terminals, so we must somehow match the back to the specification
+	 * document.
+	 * 
+	 * This is what does that, and creates two maps
+	 * 
+	 * nameToTermDict: maps from BEGIN to begin
+	 * termToNameDict: maps from begin to BEGIN
+	 * 
+	 * If a token is dynamic, aka we can't make a mapping from every
+	 * possible "string" to STR, it is a special case and is added to itself
+	 * 
+	 * nameToTermDict: maps from STR to STR
+	 * termToNameDict: maps from STR to STR
+	 * 
+	 * These special cases are given in the Grammar constructor
+	 * 
+	 * @param file The specification file
+	 */
+	public void makeTokenMap(String file) {
+		try {
+			SpecificationReader sr = new SpecificationReader(file);
+			NFA nfa = sr.run();
+			DFA dfa = NFAConverter.NFAtoDFA(nfa);
+			DFAWalker walker;
+			for (String term : terminals) {
+				if (dynamicTerminals.contains(term)) {
+					nameToTermDict.put(term, term);
+					termToNameDict.put(term, term);
+				} else {
+					walker = new DFAWalker(term, dfa);
+					Token token = walker.nextToken();
+					if (token.getType().equals(Token.TokenType.VALID)) {
+						nameToTermDict.put(token.getName(), term);
+						termToNameDict.put(term, token.getName());
+					} else {
+						throw new NoSuchElementException();
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("Could not read token specification file.");
+		}
+	}
+	
+	
 	@Override
 	public String toString() {
 		Map<String, Set<String>> firstShort = new HashMap<String, Set<String>>();
@@ -273,59 +383,5 @@ public class Grammar {
 			tempSet.add(EPSILON);
 		}
 		return tempSet;
-	}
-	
-	public void makeTokenMap(String file) {
-		try {
-			SpecificationReader sr = new SpecificationReader(file);
-			NFA nfa = sr.run();
-			DFA dfa = NFAConverter.NFAtoDFA(nfa);
-			DFAWalker walker;
-			for (String term : terminals) {
-				if (dynamicTerminals.contains(term)) {
-					nameToTermDict.put(term, term);
-					termToNameDict.put(term, term);
-				} else {
-					walker = new DFAWalker(term, dfa);
-					Token token = walker.nextToken();
-					if (token.getType().equals(Token.TokenType.VALID)) {
-						nameToTermDict.put(token.getName(), term);
-						termToNameDict.put(term, token.getName());
-					} else {
-						throw new NoSuchElementException();
-					}
-				}
-			}
-		} catch (Exception e) {
-			System.err.println("Could not read token specification file.");
-		}
-	}
-	
-	public String[] getRule(String nonterm, String term) {
-		int row = nontermMap.get(nonterm);
-		int col = termMap.get(nameToTermDict.get(term));
-		return table[row][col];
-	}
-	
-	public String getTerminalName(String term) {
-		return termToNameDict.get(term);
-	}
-	
-	/**
-	 * This method returns if s is terminal or not
-	 * @param s the string to be checked
-	 * @return
-	 */
-	public boolean isTerminal(String s){
-		return terminals.contains(s);
-	}
-	
-	/**
-	 * This method returns if s is non terminal or not
-	 * @param s
-	 * @return
-	 */
-	public boolean isNonTerminal(String s){
-		return nonterminals.contains(s);
 	}
 }
