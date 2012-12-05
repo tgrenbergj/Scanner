@@ -4,11 +4,17 @@ import java.io.*;
 public class MiniREParser {
 
 	LinkedList<Token> stack;
+	LinkedList<String> locStack;
 	String input, spec;
 	int popcount;
+	Map<String, MiniREVariable> varMap;
+	Set<String> varName;
 	
 	public MiniREParser(String input, String spec) {
 		stack = new LinkedList<Token>();
+		locStack = new LinkedList<String>();
+		varMap = new HashMap<String, MiniREVariable>();
+		varName = new HashSet<String>();
 		this.input = input;
 		this.spec = spec;
 		try {
@@ -36,28 +42,39 @@ public class MiniREParser {
 	private void statement() {
 		if ( matches("REPLACE") ) {
 			//replace REGEX with ASCII-STR in  <file-names> ;
-			pop("REPLACE"); //get rid of REPLACE
-			Token regex = pop("REGEX"); //get rid of REGEX
-			pop("WITH"); //get rid of WITH
-			Token asciistr = pop("ASCII-STR"); //get rid of ASCII-STR
-			pop("IN"); //get rid of IN
-			filenames();
-			pop("SEMICOLON"); //get rid of SEMICOLON
+			pop("REPLACE"); 
+			Token regex = pop("REGEX"); 
+			pop("WITH"); 
+			Token asciistr = pop("ASCII-STR"); 
+			pop("IN"); 
+			Token source = pop("ASCII-STR"); 
+			pop("GRTNOT"); 
+			Token destination = pop("ASCII-STR");
+			pop("SEMICOLON"); 
+			MiniREFunctions.replace(regex.getToken(), asciistr.getToken(),
+					source.getToken(), destination.getToken());
 		} else if ( matches("RECREP") ) {
 			//recursivereplace REGEX with ASCII-STR in  <file-names> ;
-			pop("RECREP");  //get rid of RECREP
-			Token regex = pop("REGEX"); //get rid of REGEX
-			pop("WITH"); //get rid of WITH
-			Token asciistr = pop("ASCII-STR"); //get rid of ASCII-STR
-			pop("IN"); //get rid of IN
-			filenames();
-			pop("SEMICOLON"); //get rid of SEMICOLON
+			pop("RECREP");  
+			Token regex = pop("REGEX"); 
+			pop("WITH"); 
+			Token asciistr = pop("ASCII-STR"); 
+			pop("IN"); 
+			Token source = pop("ASCII-STR"); 
+			pop("GRTNOT"); 
+			Token destination = pop("ASCII-STR");
+			pop("SEMICOLON"); 
+			MiniREFunctions.recursivereplace(regex.getToken(), asciistr.getToken(),
+					source.getToken(), destination.getToken());
 		} else if ( matches("ID") ) {
 			//ID = <statement-righthand> ;
-			pop("ID"); //get rid of ID
-			pop("EQ"); //get rid of EQ
-			statementrighthand();
-			pop("SEMICOLON"); //get rid of EQ
+			//Probably done
+			Token id = pop("ID"); 
+			addVar(id.getToken());
+			pop("EQ"); 
+			MiniREVariable data = statementrighthand();
+			setVar(id.getToken(), data);
+			pop("SEMICOLON"); 
 		} else if ( matches("PRINT") ) {
 			//print ( <exp-list> ) ;
 			pop("PRINT");
@@ -80,85 +97,92 @@ public class MiniREParser {
 		}
 	}
 	
-	private void filenames() {
-		Token source, destination;
-		source = pop("ASCII-STR"); //get rid of ASCII-STR
-		pop("GRTNOT"); //get rid of GRTNOT
-		destination = pop("ASCII-STR"); //get rid of ASCII-STR
-	}
-	
-	private void statementrighthand() {
+	private MiniREVariable statementrighthand() {
 		if ( matches("HASH") ) {
-			pop("HASH"); //get rid of HASH;
-			exp();
+			//Probably done
+			pop("HASH"); 
+			MiniREVariable list = exp();
+			int count = MiniREFunctions.hash(list.getStrings());
+			return new MiniREVariable(count);
 		} else if ( matches("MAXFREQ") ) {
-			pop("MAXFREQ"); //get rid of MAXFREQ
-			pop("OPENPARENS"); //Get rid of OPENPARENS
-			Token id = pop("ID"); //Get rid of ID
-			pop("CLOSEPARENS"); //get rid of CLOSEPARENS
+			//Probably done
+			pop("MAXFREQ");
+			pop("OPENPARENS");
+			Token id = pop("ID"); 
+			pop("CLOSEPARENS");
+			MiniREVariable list = getVar(id.getToken());
+			List<MiniREString> maxList = MiniREFunctions.maxfreqstring(list.getStrings());
+			return new MiniREVariable(maxList);
 		} else {
-			exp();
+			return exp();
 		}
 	}
 	
-	private void exp() {
+	private MiniREVariable exp() {
 		if ( matches("ID") ) {
-			Token id = pop("ID");  //get rid of ID
+			//Probably Done
+			Token id = pop("ID");
+			return getVar(id.getToken());
 		} else if ( matches("FIND") ) {
-			term();
+			//This doesn't allow unions yet
+			MiniREVariable retTemp = term();
 			exptail();
+			return retTemp;
 		} else if ( matches("OPENPARENS") ) {
-			pop("OPENPARENS"); //get rid of OPENPARENS
-			exp();
-			pop("CLOSEPARENS"); //get rid of CLOSEPARENS
+			//Probably Done
+			pop("OPENPARENS");
+			MiniREVariable retVar = exp();
+			pop("CLOSEPARENS");
+			return retVar;
 		} else {
 			System.err.println("Unexpected token " + stack.peek());
 			System.exit(0);
 		}
+		return null;
 	}
 	
 	private void explist() {
-		exp();
+		//Probably done
+		MiniREFunctions.print( exp() );
 		explisttail();
 	}
 	
 	private void explisttail() {
+		//Probably done
 		if ( matches("COMMA") ) {
 			pop("COMMA");
-			exp();
+			MiniREFunctions.print( exp() );
 			explisttail();
 		} else {
 			return;
 		}
 	}
 	
-	private void term() {
-		pop("FIND"); //get rid of FIND
-		Token regex = pop("REGEX"); //get rid of REGEX
-		pop("IN"); //get rid of in
-		Token asciistr = pop("ASCII-STR"); //get rid of ASCII-STR
+	private MiniREVariable term() {
+		pop("FIND"); 
+		Token regex = pop("REGEX"); 
+		pop("IN"); 
+		Token asciistr = pop("ASCII-STR");
+		List<MiniREString> found = MiniREFunctions.find(regex.getToken(), asciistr.getToken());
+		return new MiniREVariable(found);
 	}
 	
 	private void exptail() {
 		if ( matches("DIFF") || matches("UNION") || matches("INTERS") ) {
-			binop();
+			if ( matches("DIFF") ) {
+				pop("DIFF"); 
+			} else if ( matches("UNION") ) {
+				pop("UNION"); 
+			} else if ( matches("INTERS") ) {
+				pop("INTERS"); 
+			} else {
+				System.err.println("Unexpected token " + stack.peek());
+				System.exit(0);
+			}
 			term();
 			exptail();
 		} else {
 			return;
-		}
-	}
-	
-	private void binop() {
-		if ( matches("DIFF") ) {
-			pop("DIFF"); //get rid of DIFF
-		} else if ( matches("UNION") ) {
-			pop("UNION"); //get rid of UNION
-		} else if ( matches("INTERS") ) {
-			pop("INTERS"); //get rid of INTERS
-		} else {
-			System.err.println("Unexpected token " + stack.peek());
-			System.exit(0);
 		}
 	}
 	
@@ -172,15 +196,33 @@ public class MiniREParser {
 	
 	private Token pop(String name) {
 		Token popped = stack.pop();
+		String pos = locStack.pop();
 		popcount++;
 		if (popped.getName().equals(name)) {
 			System.out.println("Popping " + popped);
 			return popped;
 		} else {
-			//System.out.printf("Received unexpected token [%s] at location [%d], expected [%s].\n", popped, popcount, name);
+			System.out.printf("Received unexpected token [%s] at location [%s], expected [%s].\n", popped, pos, name);
 			System.exit(0);
 			return null;
 		}
+	}
+	
+	private void addVar(String name) {
+		varName.add(name);
+	}
+	
+	private MiniREVariable getVar(String name) {
+		MiniREVariable var = varMap.get(name);
+		if (var == null) {
+			System.err.println("Var [" + name + "] not yet defined");
+			System.exit(0);
+		}
+		return var;
+	}
+	
+	private void setVar(String name, MiniREVariable var) {
+		varMap.put(name, var);
 	}
 	
 	private void populateStack() throws IOException {
@@ -196,13 +238,14 @@ public class MiniREParser {
 				System.exit(0);
 			} else if (token.getType().equals(Token.TokenType.VALID)) {
 				stack.addLast(token);
+				locStack.addLast(walker.position());
 			}
 			token = walker.nextToken();
 		}
 	}
 	
 	public static void main(String[] args) {
-		MiniREParser mrp = new MiniREParser("src\\input_phase2\\minire_input.txt", "src\\input_phase2\\minire_spec.txt");
+		MiniREParser mrp = new MiniREParser("src\\input_phase2\\minire_basic_input.txt", "src\\input_phase2\\minire_spec.txt");
 		mrp.run();
 	}
 }
