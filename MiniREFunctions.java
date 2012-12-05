@@ -7,13 +7,19 @@ public class MiniREFunctions {
 	}
 	
 	public static int hash(List<MiniREString> list) {
-		//TODO returns the length of the string list
-		return -1;
+		list.size();
 	}
 	
 	public static List<MiniREString> maxfreqstring(List<MiniREString> list) {
-		//TODO returns a list of the maximum frequency strings in the list
-		return null;
+		int max = -1;
+		for (MiniREString str : list) {
+			max = Math.max(max, str.getCount());
+		}
+		List<MiniREString> maxList = new LinkedList<MiniREString>();
+		for (MiniREString str: list) {
+			maxList.add(str);
+		}
+		return maxList;
 	}
 	
 	public static void replace(String regex, String string, String srcFile, String destFile) {
@@ -42,6 +48,10 @@ public class MiniREFunctions {
 	
 	public static List<MiniREString> diff(List<MiniREString> list1, List<MiniREString> list2) {
 		//TODO Subtract the strings in list2 from list1
+		return null;
+	}
+	
+	private static DFA makeDFA(String regex) {
 		return null;
 	}
 }
