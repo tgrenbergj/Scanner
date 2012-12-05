@@ -18,14 +18,38 @@ public class MiniREFunctions {
 		}
 		List<MiniREString> maxList = new LinkedList<MiniREString>();
 		for (MiniREString str: list) {
-			maxList.add(str);
+			if (str.getCount() == max)
+				maxList.add(str);
 		}
 		return maxList;
 	}
 	
 	public static void replace(String regex, String string, String srcFile, String destFile) {
-		//TODO Opens srcFile, finds every occurrence of regex, replaces it with
-		//string, and saves this changed file in destFile
+		if (srcFile.equals(destFile)) {
+			System.err.println("Source can not equal destination");
+			return;
+		}
+		try {
+			regex = removeQuotes(regex);
+			string = removeQuotes(string);
+			srcFile = removeQuotes(srcFile);
+			destFile = removeQuotes(destFile);
+			PrintWriter destWriter = new PrintWriter(new File(destFile));
+			DFAWalker walker = new DFAWalker(new File(srcFile), makeDFA(regex));
+			Token token = walker.nextToken();
+			while (!token.isDone()) {
+				if (token.isValid()) {
+					destWriter.print(string);
+				} else {
+					destWriter.print(token.getToken());
+				}
+				token = walker.nextToken();
+			}
+			destWriter.flush();
+			destWriter.close();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}		
 	}
 	
 	public static void recursivereplace(String regex, String string, String srcFile, String destFile) {
@@ -34,8 +58,9 @@ public class MiniREFunctions {
 	
 	public static List<MiniREString> find(String regex, String file) {
 		List<MiniREString> list = new LinkedList<MiniREString>();
-		int filePos = 0;
 		try {
+			regex = removeQuotes(regex);
+			file = removeQuotes(file);
 			DFAWalker walker = new DFAWalker(new File(file), makeDFA(regex));
 			Token token = walker.nextToken();
 			while (!token.isDone()) {
@@ -43,16 +68,15 @@ public class MiniREFunctions {
 					boolean found = false;
 					for (MiniREString str : list) {
 						if (str.getName().equals(token.getToken())) {
-							str.addLocation(file, filePos);
+							str.addLocation(file, walker.getChar());
 							found = true;
 							break;
 						}
 					}
 					if (!found) {
-						list.add(new MiniREString(token.getToken(), file, filePos));
+						list.add(new MiniREString(token.getToken(), file, walker.getChar()));
 					}
 				}
-				filePos += token.getToken().length();
 				token = walker.nextToken();
 			}
 		} catch (IOException ioe) {
@@ -62,18 +86,35 @@ public class MiniREFunctions {
 	}
 	
 	public static List<MiniREString> union(List<MiniREString> list1, List<MiniREString> list2) {
-		//TODO Unions two string lists together
-		return null;
+		List<MiniREString> newList = new LinkedList<MiniREString>();
+		//TODO
+//		Map<>
+//		for (MiniREString str : list1) {
+//			if (!list2.contains(str)) {
+//				newList.add(str);
+//			} else {
+//				MiniREString otherStr = list2.
+//				newList.add()
+//			}
+//		}
+//		
+		return newList;
 	}
 	
 	public static List<MiniREString> inters(List<MiniREString> list1, List<MiniREString> list2) {
-		//TODO Intersects two lists
-		return null;
+		List<MiniREString> newList = new LinkedList<MiniREString>();
+		//TODO
+		return newList;
 	}
 	
 	public static List<MiniREString> diff(List<MiniREString> list1, List<MiniREString> list2) {
-		//TODO Subtract the strings in list2 from list1
-		return null;
+		List<MiniREString> newList = new LinkedList<MiniREString>();
+		for (MiniREString str : list1) {
+			if (!list2.contains(str)) {
+				newList.add(str);
+			}
+		}
+		return newList;
 	}
 	
 	private static DFA makeDFA(String regex) {
@@ -86,8 +127,11 @@ public class MiniREFunctions {
 		return NFAConverter.NFAtoDFA(nfa);
 	}
 	
-	public static void main(String[] args) {
-		List<MiniREString> list = find("statement", "minire.txt");
-		System.out.println(list);
+	
+	/**
+	 * Rempove surrounding quotes from a string
+	 */
+	private static String removeQuotes(String str) {
+		return str.substring(1, str.length()-1);
 	}
 }
