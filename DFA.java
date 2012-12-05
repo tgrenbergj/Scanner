@@ -132,8 +132,8 @@ public class DFA extends FiniteAutomata {
 		for ( int i = 0; i < dfa.length; i++) {
 			if (!finalStates.contains(i)) {
 				boolean same = true;
-				for (int j = 0; same && j < dfa[i].length - 1; j++) {
-					if (dfa[i][j] != dfa[i][j+1])
+				for (int j = 0; same && j < dfa[i].length; j++) {
+					if (dfa[i][j] != i)
 						same = false;
 				}
 				if (same) {
