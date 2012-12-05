@@ -1,38 +1,34 @@
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 public class MiniREString {
 
 	String name;
-	List<String> filenames;
+	Set<String> filenames;
 	Map<String,Set<Integer>> map;
 	int count;
 	
 	public MiniREString(String name, String filename,Integer initialLocation){
-		this.name = name;
-		filenames = new LinkedList<String>();
+		this(name);
 		filenames.add(filename);
-		map = new HashMap<String,Set<Integer>>(); 
 		map.put(filename, new HashSet<Integer>());
 		map.get(filename).add(initialLocation);
 		count = 1;
 	}
 	
+	public MiniREString(String name) {
+		this.name = name;
+		filenames = new HashSet<String>();
+		map = new HashMap<String,Set<Integer>>(); 
+		count = 0;
+	}
+	
 	public void addLocation(String filename,Integer location){
-		if(map.get(filename)==null){
+		if(map.get(filename)==null) {
 			map.put(filename, new HashSet<Integer>());
-			map.get(filename).add(location);
-			count++;
 		}
-		else{
-			map.get(filename).add(location);
-			count++;
-		}
+		map.get(filename).add(location);
+		count++;
 	}
 	
 	public int getCount(){
@@ -47,11 +43,43 @@ public class MiniREString {
 		return name.equals(((MiniREString)other).getName());
 	}
 	
+	public MiniREString union(MiniREString other) {
+		if (!other.name.equals(this.name)) {
+			return null;
+		}
+		
+		MiniREString newString = new MiniREString(this.name);
+		
+		newString.filenames.addAll(this.filenames);
+		newString.filenames.addAll(other.filenames);
+		
+		for (String fname : newString.filenames) {
+			newString.map.put(fname, new HashSet<Integer>());
+		}
+		
+		for (String fname : this.filenames) {
+			Set<Integer> thisLoc = this.map.get(fname);
+			Set<Integer> newLoc = newString.map.get(fname);
+			newLoc.addAll(thisLoc);
+		}
+		
+		for (String fname : other.filenames) {
+			Set<Integer> thisLoc = other.map.get(fname);
+			Set<Integer> newLoc = newString.map.get(fname);
+			newLoc.addAll(thisLoc);
+		}
+		
+		for (String fname : newString.filenames) {
+			newString.count += newString.map.get(fname).size();
+		}
+		return newString;
+	}
+	
 	public String toString(){
 		String toRet = "";
-		toRet = toRet + name +  " \n" ;
-		for(String fname: map.keySet()){
-			toRet = toRet + fname + " : " + map.get(fname).toString()  + " \n";
+		toRet = toRet + name + ": " ;
+		for(String fname: filenames){
+			toRet = toRet + fname + " : " + map.get(fname).toString()  + " ";
 		}
 		
 		return toRet;
