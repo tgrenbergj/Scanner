@@ -2,7 +2,7 @@ import java.util.List;
 
 public class MiniREVariable {
 
-	public enum Type{STRING, INT, EPSILON};
+	public enum Type{STRING, INT, UNION, DIFF, INTERS, EPSILON};
 	private Type type;
 	private int num;
 	private List<MiniREString> strings;
@@ -17,8 +17,8 @@ public class MiniREVariable {
 		type = Type.STRING;
 	}
 	
-	public MiniREVariable() {
-		type = Type.EPSILON;
+	public MiniREVariable(Type type) {
+		this.type = type;
 	}
 	
 	public List<MiniREString> getStrings(){
