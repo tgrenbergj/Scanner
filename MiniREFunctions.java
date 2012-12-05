@@ -1,13 +1,14 @@
 import java.util.*;
+import java.io.*;
 
 public class MiniREFunctions {
 
 	public static void print(MiniREVariable var) {
-		//TODO Print this variable, might be INT or String List
+		System.out.println(var.toString());
 	}
 	
 	public static int hash(List<MiniREString> list) {
-		list.size();
+		return list.size();
 	}
 	
 	public static List<MiniREString> maxfreqstring(List<MiniREString> list) {
@@ -32,8 +33,32 @@ public class MiniREFunctions {
 	}
 	
 	public static List<MiniREString> find(String regex, String file) {
-		//TODO finds all occurences of regex in file
-		return null;
+		List<MiniREString> list = new LinkedList<MiniREString>();
+		int filePos = 0;
+		try {
+			DFAWalker walker = new DFAWalker(new File(file), makeDFA(regex));
+			Token token = walker.nextToken();
+			while (!token.isDone()) {
+				if (token.isValid()) {
+					boolean found = false;
+					for (MiniREString str : list) {
+						if (str.getName().equals(token.getToken())) {
+							str.addLocation(file, filePos);
+							found = true;
+							break;
+						}
+					}
+					if (!found) {
+						list.add(new MiniREString(token.getToken(), file, filePos));
+					}
+				}
+				filePos += token.getToken().length();
+				token = walker.nextToken();
+			}
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
+		return list;
 	}
 	
 	public static List<MiniREString> union(List<MiniREString> list1, List<MiniREString> list2) {
@@ -52,6 +77,17 @@ public class MiniREFunctions {
 	}
 	
 	private static DFA makeDFA(String regex) {
-		return null;
+		RecursiveDescentParser rdp = new RecursiveDescentParser(regex,null);
+		NFA nfa = rdp.run();
+		nfa.addTokenName("REGEX");
+		Map<String, Integer> tokenOrder = new HashMap<String, Integer>();
+		tokenOrder.put("REGEX", 0);
+		nfa.setTokenOrder(tokenOrder);
+		return NFAConverter.NFAtoDFA(nfa);
+	}
+	
+	public static void main(String[] args) {
+		List<MiniREString> list = find("statement", "minire.txt");
+		System.out.println(list);
 	}
 }
