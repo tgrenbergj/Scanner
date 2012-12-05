@@ -47,5 +47,15 @@ public class MiniREString {
 		return name.equals(((MiniREString)other).getName());
 	}
 	
+	public String toString(){
+		String toRet = "";
+		toRet = toRet + name +  " \n" ;
+		for(String fname: map.keySet()){
+			toRet = toRet + fname + " : " + map.get(fname).toString()  + " \n";
+		}
+		
+		return toRet;
+		
+	}
 	
 }
