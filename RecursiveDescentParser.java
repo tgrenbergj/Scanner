@@ -24,8 +24,13 @@ public class RecursiveDescentParser {
 		buildSets();
 	}
 	
-	public NFA run() throws IOException {
-		return rexp();
+	public NFA run() {
+		try {
+			return rexp();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
+		return null;
 	}
 	
 	public NFA rexp() throws IOException {
