@@ -4,12 +4,26 @@ import java.io.*;
 public class DFAWalker {
 	private DFA dfa;
 	private PushbackReader reader;
+	int line;
+	int lineCharacter;
+	int character;
+	int tokenCount;
+	int prevLine;
+	int prevLineCharacter;
+	int prevCharacter;
+	int prevTokenCount;
 	
 	/**
 	 * Run walker on a file
 	 */
-	public DFAWalker(File file, DFA dfa) throws FileNotFoundException {
+	private DFAWalker(DFA dfa) {
 		this.dfa = dfa;
+		line = 1;
+		lineCharacter = 1;
+	}
+	
+	public DFAWalker(File file, DFA dfa) throws FileNotFoundException {
+		this(dfa);
 		this.reader = new PushbackReader(new FileReader(file));
 	}
 	
@@ -17,7 +31,7 @@ public class DFAWalker {
 	 * Run walker on a string
 	 */
 	public DFAWalker(String text, DFA dfa) throws FileNotFoundException {
-		this.dfa = dfa;
+		this(dfa);
 		InputStream in = new ByteArrayInputStream(text.getBytes());
 		this.reader = new PushbackReader(new InputStreamReader(in));
 	}
@@ -86,7 +100,9 @@ public class DFAWalker {
 				token = new Token(Token.TokenType.DONE);
 			}
 		}
-
+		if (!token.getType().equals(Token.TokenType.DONE)) {
+			updatePosition(token);
+		}
 		return token;
 	}
 	
@@ -117,5 +133,61 @@ public class DFAWalker {
 			}
 		}
 		return true;
+	}
+	
+	/**
+	 * Keep track of the current position in the file
+	 * 
+	 * @param token The token just read
+	 */
+	private void updatePosition(Token token) {
+		prevLine = line;
+		prevCharacter = character;
+		prevLineCharacter = lineCharacter;
+		prevTokenCount = tokenCount;
+		
+		//Increase total character count
+		character += token.getToken().length();
+		lineCharacter += token.getToken().length();
+		//Increase total token count
+		if (token.getType().equals(Token.TokenType.VALID)) {
+			tokenCount++;
+		}
+		//Increase new line count
+		if (token.getToken().contains("\r\n") ) {
+			line++;
+			int index = token.getToken().indexOf("\r\n");
+			lineCharacter = token.getToken().length() - index;
+		} else if (token.getToken().contains("\n") ) {
+			line++;
+			int index = token.getToken().indexOf("\n");
+			lineCharacter = token.getToken().length() - index;
+		}
+	}
+	
+	/**
+	 * Get the position in the file of the beginning of the last returne
+	 * character.
+	 * 
+	 * @return A string representation of the file position
+	 */
+	public String position() {
+		return String.format("Line: %d Char: %d", prevLine, prevLineCharacter);
+	}
+	
+	public int getChar() {
+		return prevCharacter;
+	}
+	
+	public int getToken() {
+		return prevTokenCount;
+	}
+	
+	public int getLine() {
+		return prevLine;
+	}
+	
+	public int getLineChar() {
+		return prevLineCharacter;
 	}
 }
