@@ -1,5 +1,6 @@
 import java.util.*;
 import java.io.*;
+import java.nio.channels.FileChannel;
 
 public class MiniREFunctions {
 
@@ -85,7 +86,26 @@ public class MiniREFunctions {
 	}
 	
 	public static void recursivereplace(String regex, String string, String srcFile, String destFile) {
-		//TODO Calls replace recursively until there are no new changes made
+		String tmpFile1 = "__temp1__.txt";
+		String tmpFile2 = "__temp2__.txt";
+		
+		copyFile(removeQuotes(srcFile), tmpFile1);
+		
+		int maxCount = 20;
+		int count = 0;
+		do {
+			replace(regex, string, tmpFile1, tmpFile2);
+			String temp = tmpFile1;
+			tmpFile1 = tmpFile2;
+			tmpFile2 = temp;
+			count++;
+		} while ( count < maxCount && !compareFiles(tmpFile1, tmpFile2) );
+		
+		if (count == maxCount) {
+			System.err.println("Stopped recursing, expect infinite recursion.");
+		}
+		System.out.println(count);
+		copyFile(tmpFile2, removeQuotes(destFile));
 	}
 	
 	/**
@@ -219,6 +239,62 @@ public class MiniREFunctions {
 	 * Remove surrounding quotes from a string
 	 */
 	private static String removeQuotes(String str) {
-		return str.substring(1, str.length()-1);
+		if (str.startsWith("\"") && str.endsWith("\"") ) {
+			return str.substring(1, str.length()-1);
+		} else if (str.startsWith("'") && str.endsWith("'") ) {
+			return str.substring(1, str.length()-1);
+		} else {
+			return str;
+		}
+		
+	}
+	
+	/**
+	 * Return true if two files are identical
+	 * @param file1
+	 * @param file2
+	 * @return
+	 */
+	private static boolean compareFiles(String file1, String file2) {
+		try {
+			Scanner scan1 = new Scanner(new File(file1));
+			Scanner scan2 = new Scanner(new File(file2));
+			while (scan1.hasNextLine() && scan2.hasNextLine()) {
+				String line1 = scan1.nextLine();
+				String line2 = scan2.nextLine();
+				if (!line1.equals(line2)) {
+					return false;
+				}
+			}
+			if (scan1.hasNextLine() || scan2.hasNextLine()) {
+				return false;
+			}
+			return true;
+		} catch (FileNotFoundException fnfe) {
+			return false;
+		}
+	}
+	
+	private static void copyFile(String src, String dst) {
+		File srcFile = new File(src);
+		File dstFile = new File(dst);
+		FileChannel srcChan = null;
+		FileChannel dstChan = null;
+		
+		try {
+			srcChan = new FileInputStream(srcFile).getChannel();
+			dstChan = new FileOutputStream(dstFile).getChannel();
+			long copied = 0;
+			long length = srcChan.size();
+			while (copied < length) {
+				copied += dstChan.transferFrom(srcChan, 0, srcChan.size());
+				dstChan.position(copied);
+			}
+			srcChan.close();
+			dstChan.close();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
+		
 	}
 }
