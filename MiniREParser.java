@@ -42,7 +42,6 @@ public class MiniREParser {
 	
 	private void statement() {
 		if ( matches("REPLACE") ) {
-			//replace REGEX with ASCII-STR in  <file-names> ;
 			pop("REPLACE"); 
 			Token regex = pop("REGEX"); 
 			pop("WITH"); 
@@ -55,7 +54,6 @@ public class MiniREParser {
 			MiniREFunctions.replace(regex.getToken(), asciistr.getToken(),
 					source.getToken(), destination.getToken());
 		} else if ( matches("RECREP") ) {
-			//recursivereplace REGEX with ASCII-STR in  <file-names> ;
 			pop("RECREP");  
 			Token regex = pop("REGEX"); 
 			pop("WITH"); 
@@ -68,8 +66,6 @@ public class MiniREParser {
 			MiniREFunctions.recursivereplace(regex.getToken(), asciistr.getToken(),
 					source.getToken(), destination.getToken());
 		} else if ( matches("ID") ) {
-			//ID = <statement-righthand> ;
-			//Probably done
 			Token id = pop("ID"); 
 			addVar(id.getToken());
 			pop("EQ"); 
@@ -77,7 +73,6 @@ public class MiniREParser {
 			setVar(id.getToken(), data);
 			pop("SEMICOLON"); 
 		} else if ( matches("PRINT") ) {
-			//print ( <exp-list> ) ;
 			pop("PRINT");
 			pop("OPENPARENS");
 			explist();
@@ -100,19 +95,17 @@ public class MiniREParser {
 	
 	private MiniREVariable statementrighthand() {
 		if ( matches("HASH") ) {
-			//Probably done
 			pop("HASH"); 
 			MiniREVariable list = exp();
-			int count = MiniREFunctions.hash(list.getStrings());
+			int count = MiniREFunctions.hash(list);
 			return new MiniREVariable(count);
 		} else if ( matches("MAXFREQ") ) {
-			//Probably done
 			pop("MAXFREQ");
 			pop("OPENPARENS");
 			Token id = pop("ID"); 
 			pop("CLOSEPARENS");
 			MiniREVariable list = getVar(id.getToken());
-			List<MiniREString> maxList = MiniREFunctions.maxfreqstring(list.getStrings());
+			List<MiniREString> maxList = MiniREFunctions.maxfreqstring(list);
 			return new MiniREVariable(maxList);
 		} else {
 			return exp();
@@ -121,18 +114,15 @@ public class MiniREParser {
 	
 	private MiniREVariable exp() {
 		if ( matches("ID") ) {
-			//Probably Done
 			Token id = pop("ID");
 			return getVar(id.getToken());
 		} else if ( matches("FIND") ) {
-			//This doesn't allow unions yet
 			MiniREVariable retTemp = term();
 			LinkedList<MiniREVariable> stack = new LinkedList<MiniREVariable>();
 			stack.addLast(retTemp);
 			exptail(stack);
 			return evaluateStack(stack);
 		} else if ( matches("OPENPARENS") ) {
-			//Probably Done
 			pop("OPENPARENS");
 			MiniREVariable retVar = exp();
 			pop("CLOSEPARENS");
@@ -145,13 +135,11 @@ public class MiniREParser {
 	}
 	
 	private void explist() {
-		//Probably done
 		MiniREFunctions.print( exp() );
 		explisttail();
 	}
 	
 	private void explisttail() {
-		//Probably done
 		if ( matches("COMMA") ) {
 			pop("COMMA");
 			MiniREFunctions.print( exp() );
@@ -193,6 +181,11 @@ public class MiniREParser {
 		}
 	}
 	
+	/**
+	 * Check the token on the top of the stack versus passed in string.
+	 * @param s The expected token at the top of the stack
+	 * @return True if the token was found
+	 */
 	private boolean matches(String s) {
 		if ( stack.peek().getName().equals(s) ) {
 			return true;
@@ -201,6 +194,13 @@ public class MiniREParser {
 		}
 	}
 	
+	/**
+	 * Pop a token off of the stack.  If the token popped does not match
+	 * the passed in name, we exit and print line/char number.
+	 * 
+	 * @param name The expected token name to find
+	 * @return The token that was popped.
+	 */
 	private Token pop(String name) {
 		Token popped = stack.pop();
 		pos = locStack.pop();
@@ -216,6 +216,13 @@ public class MiniREParser {
 		}
 	}
 	
+	/**
+	 * Evaluate a stack of lists with union, diff, and inters operations.
+	 * Stack should look like: Var, Op, Var, Op, Var, Op, Var
+	 * 
+	 * @param stack
+	 * @return
+	 */
 	private MiniREVariable evaluateStack(LinkedList<MiniREVariable> stack) {
 		while (stack.size() != 1) {
 			MiniREVariable list1 = stack.pop();
@@ -239,10 +246,19 @@ public class MiniREParser {
 		return stack.pop();
 	}
 	
+	/**
+	 * Add a new variable name to the program
+	 * @param name The variable name to add
+	 */
 	private void addVar(String name) {
 		varName.add(name);
 	}
 	
+	/**
+	 * Get the data a variable name is associated with
+	 * @param name The variable name to retrieve
+	 * @return The data associated with the variable
+	 */
 	private MiniREVariable getVar(String name) {
 		MiniREVariable var = varMap.get(name);
 		if (var == null) {
@@ -253,10 +269,21 @@ public class MiniREParser {
 		return var;
 	}
 	
+	/**
+	 * Set a variable to a value
+	 * @param name The name of the variable
+	 * @param var The variable data
+	 */
 	private void setVar(String name, MiniREVariable var) {
 		varMap.put(name, var);
 	}
 	
+	/**
+	 * Read in the entire input file, with all tokens and their locations
+	 * on a stack.  Exit if there are any invalid tokens.
+	 * 
+	 * @throws IOException
+	 */
 	private void populateStack() throws IOException {
 		SpecificationReader sr = new SpecificationReader(spec);
 		NFA nfa = sr.run();

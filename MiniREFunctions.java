@@ -3,27 +3,59 @@ import java.io.*;
 
 public class MiniREFunctions {
 
+	
+	/**
+	 * Print a MiniREVariable
+	 * @param var
+	 */
 	public static void print(MiniREVariable var) {
 		System.out.println(var.toString());
 	}
 	
-	public static int hash(List<MiniREString> list) {
-		return list.size();
+	/**
+	 * Return the size of a string list if the variable is a list, 
+	 * otherwise -1.
+	 * @param var
+	 * @return
+	 */
+	public static int hash(MiniREVariable var) {
+		if (var.getType().equals(MiniREVariable.Type.STRING))
+			return var.getStrings().size();
+		else
+			return -1;
 	}
 	
-	public static List<MiniREString> maxfreqstring(List<MiniREString> list) {
+	/**
+	 * Create a list of the strings with maximum frequency in the passed
+	 * in list
+	 * @param list
+	 * @return
+	 */
+	public static List<MiniREString> maxfreqstring(MiniREVariable var) {
+		if (!var.getType().equals(MiniREVariable.Type.STRING)) {
+			System.err.println("Warning: tried to get the frequency of a non-stringlist");
+			return new LinkedList<MiniREString>();
+		}
 		int max = -1;
-		for (MiniREString str : list) {
+		for (MiniREString str : var.getStrings()) {
 			max = Math.max(max, str.getCount());
 		}
 		List<MiniREString> maxList = new LinkedList<MiniREString>();
-		for (MiniREString str: list) {
+		for (MiniREString str: var.getStrings()) {
 			if (str.getCount() == max)
 				maxList.add(str);
 		}
 		return maxList;
 	}
 	
+	/**
+	 * Replace all occurrences of regex with string in srcFile, and save
+	 * the modified output to destFile
+	 * @param regex
+	 * @param string
+	 * @param srcFile
+	 * @param destFile
+	 */
 	public static void replace(String regex, String string, String srcFile, String destFile) {
 		if (srcFile.equals(destFile)) {
 			System.err.println("Source can not equal destination");
@@ -56,6 +88,12 @@ public class MiniREFunctions {
 		//TODO Calls replace recursively until there are no new changes made
 	}
 	
+	/**
+	 * Find all occurrences of regex in the passed in filename.
+	 * @param regex
+	 * @param file
+	 * @return
+	 */
 	public static List<MiniREString> find(String regex, String file) {
 		List<MiniREString> list = new LinkedList<MiniREString>();
 		try {
@@ -85,6 +123,9 @@ public class MiniREFunctions {
 		return list;
 	}
 	
+	/**
+	 *  Union the two lists, and union common metadata among the two lists
+	 */
 	public static List<MiniREString> union(List<MiniREString> list1, List<MiniREString> list2) {
 		List<MiniREString> newList = new LinkedList<MiniREString>();
 		Map<String, List<MiniREString>> map = new HashMap<String, List<MiniREString>>();
@@ -120,6 +161,9 @@ public class MiniREFunctions {
 		return newList;
 	}
 	
+	/**
+	 * Intersect the two lists, and union common metadata among the two lists
+	 */
 	public static List<MiniREString> inters(List<MiniREString> list1, List<MiniREString> list2) {
 		List<MiniREString> newList = new LinkedList<MiniREString>();
 		Set<String> stringSet1 = new HashSet<String>();
@@ -144,6 +188,9 @@ public class MiniREFunctions {
 		return newList;
 	}
 	
+	/**
+	 * Subtract the strings that are in list2 from list1
+	 */
 	public static List<MiniREString> diff(List<MiniREString> list1, List<MiniREString> list2) {
 		List<MiniREString> newList = new LinkedList<MiniREString>();
 		for (MiniREString str : list1) {
@@ -154,6 +201,9 @@ public class MiniREFunctions {
 		return newList;
 	}
 	
+	/**
+	 * Create a DFA from a single regex string
+	 */
 	private static DFA makeDFA(String regex) {
 		RecursiveDescentParser rdp = new RecursiveDescentParser(regex,null);
 		NFA nfa = rdp.run();
@@ -166,7 +216,7 @@ public class MiniREFunctions {
 	
 	
 	/**
-	 * Rempove surrounding quotes from a string
+	 * Remove surrounding quotes from a string
 	 */
 	private static String removeQuotes(String str) {
 		return str.substring(1, str.length()-1);

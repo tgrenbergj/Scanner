@@ -3,10 +3,10 @@ import java.util.*;
 
 public class MiniREString {
 
-	String name;
-	Set<String> filenames;
-	Map<String,Set<Integer>> map;
-	int count;
+	private String name;
+	private Set<String> filenames;
+	private Map<String,Set<Integer>> map;
+	private int count;
 	
 	public MiniREString(String name, String filename,Integer initialLocation){
 		this(name);
@@ -23,26 +23,49 @@ public class MiniREString {
 		count = 0;
 	}
 	
-	public void addLocation(String filename,Integer location){
+	/**
+	 * Add a new file name / character position pair to this string
+	 * @param filename
+	 * @param location
+	 */
+	public void addLocation(String filename, int location){
 		if(map.get(filename)==null) {
 			map.put(filename, new HashSet<Integer>());
 		}
-		map.get(filename).add(location);
-		count++;
+		
+		if (!map.get(filename).contains(location)) {
+			map.get(filename).add(location);
+			count++;
+		}
 	}
 	
+	/**
+	 * Get the number of occurences overall of this string
+	 * @return
+	 */
 	public int getCount(){
 		return count;
 	}
 	
+	/**
+	 * Get the text value of this string
+	 * @return
+	 */
 	public String getName(){
 		return name;
 	}
 	
+	@Override
 	public boolean equals(Object other){
 		return name.equals(((MiniREString)other).getName());
 	}
 	
+	
+	/**
+	 * Union the metadata of two strings and return a new MiniREString
+	 * @param other The other string to union.
+	 * @return A new MiniREString
+	 */
 	public MiniREString union(MiniREString other) {
 		if (!other.name.equals(this.name)) {
 			return null;
@@ -75,6 +98,7 @@ public class MiniREString {
 		return newString;
 	}
 	
+	@Override
 	public String toString(){
 		String toRet = name + ": ";
 		
@@ -90,6 +114,7 @@ public class MiniREString {
 		return toRet;
 	}
 	
+	@Override
 	public Object clone() {
 		MiniREString clone = new MiniREString(name);
 		
