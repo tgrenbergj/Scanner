@@ -87,23 +87,60 @@ public class MiniREFunctions {
 	
 	public static List<MiniREString> union(List<MiniREString> list1, List<MiniREString> list2) {
 		List<MiniREString> newList = new LinkedList<MiniREString>();
-		//TODO
-//		Map<>
-//		for (MiniREString str : list1) {
-//			if (!list2.contains(str)) {
-//				newList.add(str);
-//			} else {
-//				MiniREString otherStr = list2.
-//				newList.add()
-//			}
-//		}
-//		
+		Map<String, List<MiniREString>> map = new HashMap<String, List<MiniREString>>();
+		//Put all the strings from list1 into a map
+		for ( MiniREString str : list1) {
+			List<MiniREString> list = new LinkedList<MiniREString>();
+			list.add(str);
+			map.put(str.getName(), list);
+		}
+		//Put all strings from list2 into the same map, adding to a linked
+		//list in case of collisions
+		for ( MiniREString str : list2) {
+			if (!map.containsKey(str.getName())) {
+				map.put(str.getName(), new LinkedList<MiniREString>());
+			}
+			List<MiniREString> list = map.get(str.getName());
+			list.add(str);
+		}
+		
+		//Add either the union, or clone of, the strings to the new list
+		for (String key : map.keySet()) {
+			List<MiniREString> value = map.get(key);
+			if (value.size() == 1) {
+				newList.add((MiniREString) value.get(0).clone());
+			} else if (value.size() == 2) {
+				newList.add(value.get(0).union(value.get(1)));
+			} else {
+				System.err.println("Something went wrong, list had > 2 entries of same string");
+				System.exit(0);
+			}
+		}
+		
 		return newList;
 	}
 	
 	public static List<MiniREString> inters(List<MiniREString> list1, List<MiniREString> list2) {
 		List<MiniREString> newList = new LinkedList<MiniREString>();
-		//TODO
+		Set<String> stringSet1 = new HashSet<String>();
+		Set<String> stringSet2 = new HashSet<String>();
+		Map<String, MiniREString> stringMap1 = new HashMap<String, MiniREString>();
+		Map<String, MiniREString> stringMap2 = new HashMap<String, MiniREString>();
+		for (MiniREString str : list1) {
+			stringMap1.put(str.getName(), str);
+			stringSet1.add(str.getName());
+		}
+		for (MiniREString str : list2) {
+			stringMap2.put(str.getName(), str);
+			stringSet2.add(str.getName());
+
+		}
+		stringSet1.retainAll(stringSet2);
+		for (String str : stringSet1) {
+			MiniREString ministr1 = stringMap1.get(str);
+			MiniREString ministr2 = stringMap2.get(str);
+			newList.add(ministr1.union(ministr2));
+		}
 		return newList;
 	}
 	
