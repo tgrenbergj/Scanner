@@ -6,6 +6,7 @@ public class MiniREParser {
 	LinkedList<Token> stack;
 	LinkedList<String> locStack;
 	String input, spec;
+	String pos;
 	int popcount;
 	Map<String, MiniREVariable> varMap;
 	Set<String> varName;
@@ -83,8 +84,8 @@ public class MiniREParser {
 			pop("CLOSEPARENS");
 			pop("SEMICOLON");
 		} else {
-			System.err.println("Unexpected token " + stack.peek());
-			System.exit(0);
+			//Error and quit
+			pop("PRINT or ID or REPLACE or RECREP");
 		}
 	}
 	
@@ -126,8 +127,10 @@ public class MiniREParser {
 		} else if ( matches("FIND") ) {
 			//This doesn't allow unions yet
 			MiniREVariable retTemp = term();
-			exptail();
-			return retTemp;
+			LinkedList<MiniREVariable> stack = new LinkedList<MiniREVariable>();
+			stack.addLast(retTemp);
+			exptail(stack);
+			return evaluateStack(stack);
 		} else if ( matches("OPENPARENS") ) {
 			//Probably Done
 			pop("OPENPARENS");
@@ -135,8 +138,8 @@ public class MiniREParser {
 			pop("CLOSEPARENS");
 			return retVar;
 		} else {
-			System.err.println("Unexpected token " + stack.peek());
-			System.exit(0);
+			//Error and quit
+			pop("ID or FIND or OPENPARENS");
 		}
 		return null;
 	}
@@ -167,20 +170,24 @@ public class MiniREParser {
 		return new MiniREVariable(found);
 	}
 	
-	private void exptail() {
+	private void exptail(LinkedList<MiniREVariable> stack) {
 		if ( matches("DIFF") || matches("UNION") || matches("INTERS") ) {
 			if ( matches("DIFF") ) {
-				pop("DIFF"); 
+				pop("DIFF");
+				stack.addLast(new MiniREVariable(MiniREVariable.Type.DIFF));
 			} else if ( matches("UNION") ) {
 				pop("UNION"); 
+				stack.addLast(new MiniREVariable(MiniREVariable.Type.UNION));
 			} else if ( matches("INTERS") ) {
-				pop("INTERS"); 
+				pop("INTERS");
+				stack.addLast(new MiniREVariable(MiniREVariable.Type.INTERS));
 			} else {
-				System.err.println("Unexpected token " + stack.peek());
-				System.exit(0);
+				//Error and quit
+				pop("DIFF or UNION or INTERS");
 			}
-			term();
-			exptail();
+			MiniREVariable tempRet = term();
+			stack.addLast(tempRet);
+			exptail(stack);
 		} else {
 			return;
 		}
@@ -196,16 +203,40 @@ public class MiniREParser {
 	
 	private Token pop(String name) {
 		Token popped = stack.pop();
-		String pos = locStack.pop();
+		pos = locStack.pop();
 		popcount++;
 		if (popped.getName().equals(name)) {
-			System.out.println("Popping " + popped);
+			//System.out.println("Popping " + popped);
 			return popped;
 		} else {
-			System.out.printf("Received unexpected token [%s] at location [%s], expected [%s].\n", popped, pos, name);
+			System.err.printf("Received unexpected token [%s] at location [%s], expected [%s].\n", popped, pos, name);
+			System.out.println("Exiting.  Check error logs.");
 			System.exit(0);
 			return null;
 		}
+	}
+	
+	private MiniREVariable evaluateStack(LinkedList<MiniREVariable> stack) {
+		while (stack.size() != 1) {
+			MiniREVariable list1 = stack.pop();
+			MiniREVariable op = stack.pop();
+			MiniREVariable list2 = stack.pop();
+			MiniREVariable result;
+			if (op.getType().equals(MiniREVariable.Type.DIFF)) {
+				result = new MiniREVariable(MiniREFunctions.diff(list1.getStrings(), list2.getStrings()));
+				stack.addFirst(result);
+			} else if (op.getType().equals(MiniREVariable.Type.UNION)) {
+				result = new MiniREVariable(MiniREFunctions.union(list1.getStrings(), list2.getStrings()));
+				stack.addFirst(result);
+			} else if (op.getType().equals(MiniREVariable.Type.INTERS)) {
+				result = new MiniREVariable(MiniREFunctions.inters(list1.getStrings(), list2.getStrings()));
+				stack.addFirst(result);
+			} else {
+				System.err.println("Error processing exp stack");
+				System.exit(0);
+			}
+		}
+		return stack.pop();
 	}
 	
 	private void addVar(String name) {
@@ -215,7 +246,8 @@ public class MiniREParser {
 	private MiniREVariable getVar(String name) {
 		MiniREVariable var = varMap.get(name);
 		if (var == null) {
-			System.err.println("Var [" + name + "] not yet defined");
+			System.err.printf("Received undefined variable [%s] at location [%s].\n", name, pos);
+			System.out.println("Exiting.  Check error logs.");
 			System.exit(0);
 		}
 		return var;
@@ -245,7 +277,7 @@ public class MiniREParser {
 	}
 	
 	public static void main(String[] args) {
-		MiniREParser mrp = new MiniREParser("src\\input_phase2\\minire_basic_input.txt", "src\\input_phase2\\minire_spec.txt");
+		MiniREParser mrp = new MiniREParser("src\\input_phase2\\minire_input.txt", "src\\input_phase2\\minire_spec.txt");
 		mrp.run();
 	}
 }
