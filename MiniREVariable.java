@@ -1,28 +1,43 @@
 import java.util.List;
 
-
 public class MiniREVariable {
 
-	public enum Type{STRING, INT}
-	Type type;
-	int val;
-	List<MiniREString> strings;
+	public enum Type{STRING, INT, EPSILON};
+	private Type type;
+	private int num;
+	private List<MiniREString> strings;
 	
 	public MiniREVariable(int value){
-		this.val = value;
-		type = type.INT;
+		this.num = value;
+		type = Type.INT;
 	}
 	
 	public MiniREVariable(List<MiniREString> strings){
 		this.strings = strings;
-		type = type.STRING;
+		type = Type.STRING;
 	}
 	
-	public List<MiniREString> getData(){
+	public MiniREVariable() {
+		type = Type.EPSILON;
+	}
+	
+	public List<MiniREString> getStrings(){
 		return strings;
+	}
+	
+	public int getInt() {
+		return num;
 	}
 	
 	public Type getType(){
 		return type;
+	}
+	
+	public String toString() {
+		if (type.equals(Type.STRING)) {
+			return strings.toString();
+		} else {
+			return "" + num;
+		}
 	}
 }
