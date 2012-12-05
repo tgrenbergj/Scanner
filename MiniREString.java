@@ -76,14 +76,36 @@ public class MiniREString {
 	}
 	
 	public String toString(){
-		String toRet = "";
-		toRet = toRet + name + ": " ;
+		String toRet = name + ": ";
+		
+		int i = 0;
 		for(String fname: filenames){
-			toRet = toRet + fname + " : " + map.get(fname).toString()  + " ";
+			toRet += "<" + fname + " : " + map.get(fname).toString()  + ">";
+			if (i != filenames.size() - 1) {
+				toRet += " ";
+			}
+			i++;
+		}
+	
+		return toRet;
+	}
+	
+	public Object clone() {
+		MiniREString clone = new MiniREString(name);
+		
+		clone.count = count;
+		
+		for (String file : filenames) {
+			clone.filenames.add(file);
 		}
 		
-		return toRet;
+		for (String file : filenames) {
+			Set<Integer> posSet = new HashSet<Integer>();
+			posSet.addAll(map.get(file));
+			clone.map.put(file, posSet);
+		}
 		
+		return clone;
 	}
 	
 }
