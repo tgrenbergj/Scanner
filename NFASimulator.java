@@ -16,14 +16,11 @@ public class NFASimulator {
 	
 	public void simulate() throws IOException{
 		int curState = nfa.getStartState();
-		Set<Integer> a;
 		char curChar;
 		StringBuilder validToken = new StringBuilder();
-		char epsilon = (char)169;
 		nextStates.addAll(nfa.getEpsilonClosure(curState));
 		nextStates.add(curState);
 		maxClones.add(nextStates.size());
-		Set<Integer> finalStates = nfa.getFinalStates();
 		Set<Integer> cache = new HashSet<Integer>();
 		String currentIdent = "";
 		int totalTransitions = nextStates.size();
