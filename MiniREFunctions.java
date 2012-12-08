@@ -63,10 +63,10 @@ public class MiniREFunctions {
 			return;
 		}
 		try {
-			regex = removeQuotes(regex);
-			string = removeQuotes(string);
-			srcFile = removeQuotes(srcFile);
-			destFile = removeQuotes(destFile);
+			regex = removeQuotes(regex, true);
+			string = removeQuotes(string, false);
+			srcFile = removeQuotes(srcFile, false);
+			destFile = removeQuotes(destFile, false);
 			PrintWriter destWriter = new PrintWriter(new File(destFile));
 			DFAWalker walker = new DFAWalker(new File(srcFile), makeDFA(regex));
 			Token token = walker.nextToken();
@@ -89,7 +89,7 @@ public class MiniREFunctions {
 		String tmpFile1 = "__temp1__.txt";
 		String tmpFile2 = "__temp2__.txt";
 		
-		copyFile(removeQuotes(srcFile), tmpFile1);
+		copyFile(removeQuotes(srcFile, false), tmpFile1);
 		
 		int maxCount = 20;
 		int count = 0;
@@ -104,8 +104,14 @@ public class MiniREFunctions {
 		if (count == maxCount) {
 			System.err.println("Stopped recursing, expect infinite recursion.");
 		}
-		System.out.println(count);
-		copyFile(tmpFile2, removeQuotes(destFile));
+		//System.out.println(count);
+		copyFile(tmpFile2, removeQuotes(destFile, false));
+		
+		File file1 = new File(tmpFile1);
+		File file2 = new File(tmpFile2);
+		file1.delete();
+		file2.delete();
+		
 	}
 	
 	/**
@@ -117,8 +123,8 @@ public class MiniREFunctions {
 	public static List<MiniREString> find(String regex, String file) {
 		List<MiniREString> list = new LinkedList<MiniREString>();
 		try {
-			regex = removeQuotes(regex);
-			file = removeQuotes(file);
+			regex = removeQuotes(regex, true);
+			file = removeQuotes(file, false);
 			DFAWalker walker = new DFAWalker(new File(file), makeDFA(regex));
 			Token token = walker.nextToken();
 			while (!token.isDone()) {
@@ -225,6 +231,7 @@ public class MiniREFunctions {
 	 * Create a DFA from a single regex string
 	 */
 	private static DFA makeDFA(String regex) {
+		regex = regex.replace("\\'", "'");
 		RecursiveDescentParser rdp = new RecursiveDescentParser(regex,null);
 		NFA nfa = rdp.run();
 		nfa.addTokenName("REGEX");
@@ -236,18 +243,21 @@ public class MiniREFunctions {
 	
 	
 	/**
-	 * Remove surrounding quotes from a string
+	 * Remove surrounding and inner quotes from a string
 	 */
-	private static String removeQuotes(String str) {
+	private static String removeQuotes(String str, boolean regex) {
 		if (str.startsWith("\"") && str.endsWith("\"") ) {
-			return str.substring(1, str.length()-1);
+			str = str.substring(1, str.length()-1);
 		} else if (str.startsWith("'") && str.endsWith("'") ) {
-			return str.substring(1, str.length()-1);
-		} else {
-			return str;
+			str = str.substring(1, str.length()-1);
 		}
+		if (!regex)
+			str = str.replace("\\\"", "\"");
+		return str;
 		
 	}
+	
+	
 	
 	/**
 	 * Return true if two files are identical
@@ -257,18 +267,26 @@ public class MiniREFunctions {
 	 */
 	private static boolean compareFiles(String file1, String file2) {
 		try {
-			Scanner scan1 = new Scanner(new File(file1));
-			Scanner scan2 = new Scanner(new File(file2));
+			File srcFile = new File(file1);
+			File dstFile = new File(file2);
+			Scanner scan1 = new Scanner(srcFile);
+			Scanner scan2 = new Scanner(dstFile);
 			while (scan1.hasNextLine() && scan2.hasNextLine()) {
 				String line1 = scan1.nextLine();
 				String line2 = scan2.nextLine();
 				if (!line1.equals(line2)) {
+					scan1.close();
+					scan2.close();
 					return false;
 				}
 			}
 			if (scan1.hasNextLine() || scan2.hasNextLine()) {
+				scan1.close();
+				scan2.close();
 				return false;
 			}
+			scan1.close();
+			scan2.close();
 			return true;
 		} catch (FileNotFoundException fnfe) {
 			return false;
@@ -282,8 +300,10 @@ public class MiniREFunctions {
 		FileChannel dstChan = null;
 		
 		try {
-			srcChan = new FileInputStream(srcFile).getChannel();
-			dstChan = new FileOutputStream(dstFile).getChannel();
+			FileInputStream fis = new FileInputStream(srcFile);
+			FileOutputStream fos = new FileOutputStream(dstFile);
+			srcChan = fis.getChannel();
+			dstChan = fos.getChannel();
 			long copied = 0;
 			long length = srcChan.size();
 			while (copied < length) {
@@ -292,6 +312,8 @@ public class MiniREFunctions {
 			}
 			srcChan.close();
 			dstChan.close();
+			fis.close();
+			fos.close();
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		}

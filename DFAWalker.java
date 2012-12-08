@@ -4,6 +4,7 @@ import java.io.*;
 public class DFAWalker {
 	private DFA dfa;
 	private PushbackReader reader;
+	private FileReader fr;
 	int line;
 	int lineCharacter;
 	int character;
@@ -24,7 +25,8 @@ public class DFAWalker {
 	
 	public DFAWalker(File file, DFA dfa) throws FileNotFoundException {
 		this(dfa);
-		this.reader = new PushbackReader(new FileReader(file));
+		fr = new FileReader(file);
+		this.reader = new PushbackReader(fr);
 	}
 	
 	/**
@@ -98,6 +100,8 @@ public class DFAWalker {
 				}
 			} else {
 				token = new Token(Token.TokenType.DONE);
+				reader.close();
+				fr.close();
 			}
 		}
 		if (!token.getType().equals(Token.TokenType.DONE)) {
