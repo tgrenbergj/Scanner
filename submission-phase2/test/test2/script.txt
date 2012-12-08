@@ -1,0 +1,20 @@
+begin
+file1even = find '([0-9])*[02468]' in "input1.txt";
+file2even = find '([0-9])*[02468]' in "input2.txt";
+print (file1even);
+print (file2even);
+even = find '([0-9])*[02468]' in "input1.txt" inters find '([0-9])*[02468]' in "input2.txt";
+evencnt = #even;
+max = maxfreqstring(even);
+print (even, evencnt, max);
+all = find '([0-9])*[02468]' in "input1.txt" union find '([0-9])*[13579]' in "input1.txt";
+allcnt = #all;
+max = maxfreqstring(all);
+print (all, allcnt, max);
+all = find '([0-9])*[02468]' in "input2.txt" union find '([0-9])*[13579]' in "input2.txt";
+allcnt = #all;
+max = maxfreqstring(all);
+print (all, allcnt, max);
+replace '([A-Za-z])*' with "NaN" in "input2.txt" >! "output1.txt"; 
+recursivereplace '(a | ((\ )*NN) )' with "" in "output1.txt" >! "outpu2.txt"; 
+end

@@ -1,0 +1,8 @@
+begin
+blargh = find '([A-Za-z])*' in "input1.txt" diff find '([A-Za-z])*' in "input2.txt" union find '([A-Za-z0-9])*' in "input3.txt" inters find '([A-Za-z0-9])*' in "input4.txt";
+max = maxfreqstring(blargh);
+print (blargh);
+print (max);
+replace '([A-Za-z])*lo' with "_REPLACE_" in "input1.txt" >! "output1.txt"; 
+recursivereplace '([A-Za-z])*lo' with "_RECURSIVEREPLACE_" in "input1.txt" >! "output2.txt"; 
+end

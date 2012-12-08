@@ -1,8 +1,8 @@
 begin
-print ( find '\" ([^"] IN [ -~])* \"' in "file1.txt" );
-var = find '[A-Za-z] ([A-Za-z0-9\-])+' in "file1.txt";
-int = find '[0-9] ([0-9])+' in "file1.txt";
-float = find '[0-9] ([0-9])* \. ([0-9])*' in "file1.txt";
+print ( find '\" ([^"] IN [ -~])* \"' in "input1.txt" );
+var = find '[A-Za-z] ([A-Za-z0-9\-])+' in "input1.txt";
+int = find '[0-9] ([0-9])+' in "input1.txt";
+float = find '[0-9] ([0-9])* \. ([0-9])*' in "input1.txt";
 varcnt = #var;
 intcnt = #int;
 floatcnt = #float;

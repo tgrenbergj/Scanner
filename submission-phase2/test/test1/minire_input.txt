@@ -1,8 +1,0 @@
-begin
-blargh = find '([A-Za-z])*' in "file1.txt" diff find '([A-Za-z])*' in "file2.txt" union find '([A-Za-z0-9])*' in "file3.txt" inters find '([A-Za-z0-9])*' in "file4.txt";
-max = maxfreqstring(blargh);
-print (blargh);
-print (max);
-replace '([A-Za-z])*lo' with "_REPLACE_" in "file1.txt" >! "file5.txt"; 
-recursivereplace '([A-Za-z])*lo' with "_RECURSIVEREPLACE_" in "file1.txt" >! "file6.txt"; 
-end
