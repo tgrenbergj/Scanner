@@ -1,4 +1,4 @@
 set -v
 echo 'Compiling...'
-javac *.java
+make build
 echo 'Done Compiling'
