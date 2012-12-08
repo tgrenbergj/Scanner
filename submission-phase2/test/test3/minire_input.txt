@@ -1,0 +1,12 @@
+begin
+x = find '([!-~])*' in "file1.txt";
+y = find '([ -~])*' in "file2.txt";
+z = find '([^"] IN [ -~])*' in "file3.txt";
+w = find '([^\'] IN [ -~])*' in "file4.txt";
+print (x);
+print (y);
+print (z);
+print (w);
+replace '([!-~])*' with "_REPLACE_" in "file1.txt" >! "file5.txt"; 
+replace '([ -~])*' with "_REPLACE_" in "file1.txt" >! "file6.txt"; 
+end

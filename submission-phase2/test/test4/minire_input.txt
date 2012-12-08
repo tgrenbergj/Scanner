@@ -1,0 +1,15 @@
+begin
+print ( find '\" ([^"] IN [ -~])* \"' in "file1.txt" );
+var = find '[A-Za-z] ([A-Za-z0-9\-])+' in "file1.txt";
+int = find '[0-9] ([0-9])+' in "file1.txt";
+float = find '[0-9] ([0-9])* \. ([0-9])*' in "file1.txt";
+varcnt = #var;
+intcnt = #int;
+floatcnt = #float;
+varmax = maxfreqstring( var );
+intmax = maxfreqstring( int );
+floatmax = maxfreqstring( float );
+print( int );
+print ( varcnt, intcnt, floatcnt );
+print (varmax, intmax, floatmax);
+end
