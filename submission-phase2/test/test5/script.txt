@@ -1,0 +1,33 @@
+begin
+x = find '([0-9])+' in "input1.txt";
+y = find '([0-9])+' in "input2.txt";
+z = find '([0-9])+' in "input3.txt";
+print (x, y, z);
+x = find '([0-9])+' in "input1.txt" inters find '([0-9])+' in "input2.txt" inters find '([0-9])+' in "input3.txt";
+xcount = #x;
+print (x, xcount);
+x = find '([0-9])+' in "input1.txt" union find '([0-9])+' in "input3.txt";
+xcount = #x;
+print (x, xcount);
+x = find '([0-9])+' in "input1.txt" union find '([0-9])+' in "input2.txt";
+xcount = #x;
+print (x, xcount);
+x = find '([0-9])+' in "input1.txt" union find '([0-9])+' in "input3.txt" diff find '([0-9])+' in "input2.txt";
+xcount = #x;
+print (x, xcount);
+x = find '([0-9])+' in "input1.txt" diff find '([0-9])+' in "input2.txt" diff find '([0-9])+' in "input3.txt";
+xcount = #x;
+print (x, xcount);
+x = find '([0-9])+' in "input3.txt" diff find '([0-9])+' in "input2.txt" diff find '([0-9])+' in "input1.txt";
+xcount = #x;
+print (x, xcount);
+x = find '([0-9])+' in "input3.txt" diff find '([0-9])+' in "input3.txt";
+xcount = #x;
+print (x, xcount);
+x = find '([0-9])+' in "input3.txt" inters find '([0-9])+' in "input3.txt";
+xcount = #x;
+print (x, xcount);
+x = find '([0-9])+' in "input3.txt" union find '([0-9])+' in "input3.txt";
+xcount = #x;
+print (x, xcount);
+end
