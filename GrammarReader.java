@@ -17,12 +17,12 @@ public class GrammarReader {
 	 * @param file The file containing the grammar
 	 * @return The Grammar object representing the grammar
 	 */
-	public static Grammar read(String gramFile, String tokenFile, String[] specialTerminals) {
+	public static Grammar read(String gramFile, String gramInfoFile, String tokenFile, String[] specialTerminals) {
 		try {
-			scan = new Scanner(new File(gramFile));
+			scan = new Scanner(new File(gramInfoFile));
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Can not find file " + gramFile);
-			return null;
+			System.err.println("Can not find file " + gramInfoFile);
+			System.exit(0);
 		}
 		
 		grammar = new Grammar(specialTerminals);
@@ -31,8 +31,16 @@ public class GrammarReader {
 			return null;
 		if (!readStart())
 			return null;
+		scan.close();
+		try {
+			scan = new Scanner(new File(gramFile));
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Can not find file " + gramFile);
+			System.exit(0);
+		}
 		if (!readRules())
 			return null;
+		scan.close();
 		
 		grammar.makeFirstSets();
 		grammar.makeFollowSets();
@@ -58,7 +66,7 @@ public class GrammarReader {
 		//Make sure to read multiple lines of tokens
 		while (!line.startsWith("%% Start")) {
 			lineScan = new Scanner(line);
-			
+
 			//Get each whitespace separated word as a terminal
 			while (lineScan.hasNext()) {
 				String rule = lineScan.next();
@@ -68,7 +76,7 @@ public class GrammarReader {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Read in the start state of the grammar
 	 * @return false if the grammar is malformed, true otherwise
@@ -78,11 +86,10 @@ public class GrammarReader {
 			System.err.println("Rules malformed, was expecting %% Start");
 			return false;
 		}
-		
+
 		//Read blanks and set start rule
 		readBlanks();
 		grammar.setStart(line.trim());
-		readBlanks();
 		return true;
 	}
 	
@@ -91,10 +98,6 @@ public class GrammarReader {
 	 * @return false if the grammar is malformed, true otherwise
 	 */
 	public static boolean readRules() {
-		if (!line.startsWith("%% Rules")) {
-			System.err.println("Rules malformed, was expecting %% Rules");
-			return false;
-		}
 		while (scan.hasNextLine()) {
 			readBlanks();
 			String[] rules = line.split(" (->|\\||::=)");
@@ -107,7 +110,6 @@ public class GrammarReader {
 				grammar.addRule(nonterm, split);
 			}
 		}
-		
 		return true;
 	}
 	
