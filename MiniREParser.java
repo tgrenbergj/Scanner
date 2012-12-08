@@ -302,9 +302,4 @@ public class MiniREParser {
 			token = walker.nextToken();
 		}
 	}
-	
-	public static void main(String[] args) {
-		MiniREParser mrp = new MiniREParser("src\\input_phase2\\minire_input.txt", "src\\input_phase2\\minire_spec.txt");
-		mrp.run();
-	}
 }
