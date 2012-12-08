@@ -86,6 +86,10 @@ public class MiniREFunctions {
 	}
 	
 	public static void recursivereplace(String regex, String string, String srcFile, String destFile) {
+		if (srcFile.equals(destFile)) {
+			System.err.println("Source can not equal destination");
+			return;
+		}
 		String tmpFile1 = "__temp1__.txt";
 		String tmpFile2 = "__temp2__.txt";
 		
