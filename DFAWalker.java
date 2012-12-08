@@ -1,18 +1,19 @@
 import java.io.*;
+import java.util.*;
 
 
 public class DFAWalker {
 	private DFA dfa;
 	private PushbackReader reader;
 	private FileReader fr;
-	int line;
-	int lineCharacter;
-	int character;
-	int tokenCount;
-	int prevLine;
-	int prevLineCharacter;
-	int prevCharacter;
-	int prevTokenCount;
+	private int line;
+	private int lineCharacter;
+	private int character;
+	private int tokenCount;
+	private int prevLine;
+	private int prevLineCharacter;
+	private int prevCharacter;
+	private int prevTokenCount;
 	
 	/**
 	 * Run walker on a file
@@ -26,7 +27,7 @@ public class DFAWalker {
 	public DFAWalker(File file, DFA dfa) throws FileNotFoundException {
 		this(dfa);
 		fr = new FileReader(file);
-		this.reader = new PushbackReader(fr);
+		this.reader = new PushbackReader(fr, 10000);
 	}
 	
 	/**
@@ -39,6 +40,7 @@ public class DFAWalker {
 	}
 	
 	public Token nextToken() throws IOException {
+		Stack<Integer> prevStates = new Stack<Integer>();
 		Token token = null;
 		StringBuilder sb = new StringBuilder();
 		int curState = dfa.getStartState();
@@ -49,6 +51,7 @@ public class DFAWalker {
 			nextState = dfa.getNextState(curState, (char) curChar);
 			
 			if ( nextState != -1 && !dfa.isDeadState(nextState) ) {
+				prevStates.push(nextState);
 				sb.append((char) curChar);
 				curState = nextState;
 			} else {
@@ -62,6 +65,29 @@ public class DFAWalker {
 				//Unread the character that broke the token and reset
 				reader.unread(curChar);
 				curState = dfa.getStartState();
+				
+				//Start recovery, maybe valid substring in invalid string
+				boolean validFound = false;
+				int len = sb.length();
+				int popState = -1;
+				while (!prevStates.isEmpty()) {
+					popState = prevStates.pop();
+					if (dfa.isFinalState(popState)) {
+						validFound = true;
+						break;
+					} else {
+						len--;
+					}
+				}
+				
+				//Push back invalid chars into stream, set valid token
+				if (validFound) { 
+					for (int i = sb.length() - 1; i >= len; i--) {
+						reader.unread(sb.charAt(i));
+					}			
+					token = new Token(Token.TokenType.VALID, dfa.getTokenName(popState), sb.substring(0, len));
+					break;
+				}
 				
 				curChar = peek();
 				nextState = dfa.getNextState(curState, (char) curChar);
@@ -96,7 +122,30 @@ public class DFAWalker {
 				} else if (isWhitespace(sb.toString())) {
 					token = new Token(Token.TokenType.WHITESPACE, "WHITESPACE", sb.toString());
 				} else {
-					token = new Token(Token.TokenType.INVALID, "INVALID", sb.toString());
+					
+					//Exact duplicate of above code
+					boolean validFound = false;
+					int len = sb.length();
+					int popState = -1;
+					while (!prevStates.isEmpty()) {
+						popState = prevStates.pop();
+						if (dfa.isFinalState(popState)) {
+							validFound = true;
+							break;
+						} else {
+							len--;
+						}
+					}
+					
+					if (validFound) { 
+						reader.unread(-1);
+						for (int i = sb.length() - 1; i >= len; i--) {
+							reader.unread(sb.charAt(i));
+						}
+						token = new Token(Token.TokenType.VALID, dfa.getTokenName(popState), sb.substring(0, len));
+					} else {
+						token = new Token(Token.TokenType.INVALID, "INVALID", sb.toString());
+					}
 				}
 			} else {
 				token = new Token(Token.TokenType.DONE);
