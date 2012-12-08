@@ -1,0 +1,4 @@
+%% Tokens
+begin end ( ) print replace recursivereplace maxfreqstring union diff inters find in with = ; , >! # ASCII-STR REGEX ID
+%% Start
+<MiniRE-program>

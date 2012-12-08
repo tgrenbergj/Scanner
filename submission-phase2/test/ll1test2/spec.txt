@@ -1,0 +1,9 @@
+$LETTER [a-zA-Z]
+$DIGIT [0-9]
+
+$OPENPARENS \(
+$CLOSEPARENS \)
+$STAR \*
+$PLUS \+
+$INT int
+$$ $
