@@ -43,19 +43,22 @@ Other files are the same as in Phase 1.
 --------------------------
 Assumptions
 --------------------------
+1) There must exist a file in the same directory as the test inputs and scripts
+called minire_spec.txt that contains the language specifications.  The executable
+should be run from the working directory of the scripts and files.
 
-1) If a regular expression has a grouping with an optional character, it must be
+2) If a regular expression has a grouping with an optional character, it must be
 the last element of the grouping.
 
 Valid:    (a | b | c | )
 Invalid:  ( | a | b | c)
 
-2) In a language specification, any $IDENTIFIER defined before another
+3) In a language specification, any $IDENTIFIER defined before another
 $IDENTIFIER takes precedence automatically.  For example, in our project, the 
 $ID identifier must be defined after all reservered words, like $BEGIN.
 Otherwise, there will be ambiguity.
 
-3) In a regular expression inside of a script, all single quotes must be
+4) In a regular expression inside of a script, all single quotes must be
 escaped, even if they are already preceded by an escape character as
 defined in the original Phase 1 description.
 
@@ -63,13 +66,14 @@ Valid Regex:          ['] (a | b | c | d | \') [']
 Valid script regex:   '[\'] (a | b | c | d | \\') [\']'
 Invalid script regex: '[\'] (a | b | c | d | \') [\']'
 
-4) We are assuming all definitions from Phase 1 still stand.  For example, the
+5) We are assuming all definitions from Phase 1 still stand.  For example, the
 sample output is incorrect.  The regular expression
 '([A-Z a-z])*ment([A-Z a-z])*' will match an entire line of alphabetic
 characters and spaces, as long as that line contains the substring "ment".  
 This is because [A-Z a-z] contains the space character, which is allowed in
 the Phase 1 regex definitions.  Therefore, we consider the output to the
-sample case incorrect.
+sample case incorrect.  We have changed the regular expression so it matches
+the output.
 
 --------------------------
 Contributions
